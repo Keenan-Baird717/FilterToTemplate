@@ -1,0 +1,133 @@
+/* Steps: a calm, guided flow. Cool slate frame, white stage, marigold accent.
+   Fraunces for the few display moments, Figtree for everything else. */
+
+:root[data-variant='steps'] {
+  --ground: #eaeef3;
+  --panel: #ffffff;
+  --panel-2: #f4f6f9;
+  --ink: #17202c;
+  --ink-2: #4a5566;
+  --ink-3: #6b7586;
+  --rule: #e0e5ec;
+  --cobalt: #f2a618;
+  --cobalt-soft: #fdf1d4;
+  --on-cobalt: #2a1b00;
+  --marker: #ffe38a;
+  --marker-ink: #3b2f00;
+  --ok: #127a52;
+  --ok-soft: #e2f3ea;
+  --warn: #b54708;
+  --warn-soft: #fdeee3;
+  --bad: #c4283f;
+  --bad-soft: #fdeaec;
+  --ring: #b86a00;
+  --steps-focus: #b86a00;
+  --steps-stage-shadow: 0 1px 2px rgb(23 32 44 / 0.04), 0 12px 40px rgb(23 32 44 / 0.06);
+  --shadow-page: 0 1px 2px rgb(23 32 44 / 0.06), 0 10px 30px rgb(23 32 44 / 0.1);
+  --radius: 0.75rem;
+  --font-ui: 'Figtree Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-data: 'Geist Mono Variable', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  --font-display: 'Fraunces Variable', 'Iowan Old Style', Georgia, serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-variant='steps']:not([data-theme='light']) {
+    --ground: #0d1015;
+    --panel: #151a21;
+    --panel-2: #1b212a;
+    --ink: #e7ebf1;
+    --ink-2: #a9b2c0;
+    --ink-3: #7d8796;
+    --rule: #28303b;
+    --cobalt: #f5b53a;
+    --cobalt-soft: #31270f;
+    --on-cobalt: #241700;
+    --marker: #f6d470;
+    --marker-ink: #2e2400;
+    --ok: #4fc490;
+    --ok-soft: #10291f;
+    --warn: #f79a5c;
+    --warn-soft: #34200f;
+    --bad: #f47a8a;
+    --bad-soft: #36161c;
+    --ring: #f5b53a;
+    --steps-focus: #f5b53a;
+    --steps-stage-shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 12px 40px rgb(0 0 0 / 0.35);
+    --shadow-page: 0 1px 2px rgb(0 0 0 / 0.45), 0 12px 32px rgb(0 0 0 / 0.5);
+    color-scheme: dark;
+  }
+}
+
+:root[data-variant='steps'][data-theme='dark'] {
+  --ground: #0d1015;
+  --panel: #151a21;
+  --panel-2: #1b212a;
+  --ink: #e7ebf1;
+  --ink-2: #a9b2c0;
+  --ink-3: #7d8796;
+  --rule: #28303b;
+  --cobalt: #f5b53a;
+  --cobalt-soft: #31270f;
+  --on-cobalt: #241700;
+  --marker: #f6d470;
+  --marker-ink: #2e2400;
+  --ok: #4fc490;
+  --ok-soft: #10291f;
+  --warn: #f79a5c;
+  --warn-soft: #34200f;
+  --bad: #f47a8a;
+  --bad-soft: #36161c;
+  --ring: #f5b53a;
+  --steps-focus: #f5b53a;
+  --steps-stage-shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 12px 40px rgb(0 0 0 / 0.35);
+  --shadow-page: 0 1px 2px rgb(0 0 0 / 0.45), 0 12px 32px rgb(0 0 0 / 0.5);
+  color-scheme: dark;
+}
+
+/* Everything below is scoped to this prototype. */
+
+:root[data-variant='steps'] :focus-visible {
+  outline-color: var(--steps-focus);
+}
+
+.steps-root {
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.steps-display {
+  font-family: var(--font-display);
+  font-weight: 480;
+  letter-spacing: -0.018em;
+  font-optical-sizing: auto;
+}
+
+.steps-stage {
+  box-shadow: var(--steps-stage-shadow);
+}
+
+/* Typeform-like answer field: one big line, underline only. */
+.steps-answer {
+  caret-color: var(--steps-focus);
+}
+.steps-answer::placeholder {
+  color: var(--ink-3);
+  opacity: 0.7;
+}
+
+/* Filled values on the page: a soft accent underline instead of the default blue. */
+.steps-root .ftt-docx[data-highlight='true'] .ftt-val {
+  background: color-mix(in srgb, var(--cobalt) 9%, transparent);
+  text-decoration-color: color-mix(in srgb, var(--cobalt) 75%, transparent);
+}
+.steps-root .ftt-docx .ftt-val:hover {
+  background: color-mix(in srgb, var(--cobalt) 22%, transparent);
+}
+
+/* The field picked in the review checklist, washed in the accent on the page. */
+.steps-root .ftt-docx .ftt-val.ftt-selected,
+.steps-root .ftt-docx .ftt-missing.ftt-selected {
+  background: color-mix(in srgb, var(--cobalt) 40%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--cobalt) 40%, transparent);
+  text-decoration: none;
+}
