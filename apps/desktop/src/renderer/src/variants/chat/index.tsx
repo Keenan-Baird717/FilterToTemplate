@@ -40,17 +40,14 @@ function useAutoOpen(enabled: boolean, busy: boolean, messages: AppUIMessage[]) 
 
 /** Route the shared Ctrl/⌘K "jump to field" and "show preview" actions into this layout's panel. */
 function useCommandBridge() {
-  useEffect(() => {
-    const { focusField, setView } = useApp.getState()
-    useApp.setState({
-      focusField: (id) => useChatUI.getState().openPanel('fields', id),
-      setView: (view) => {
-        setView(view)
-        useChatUI.getState().openPanel(view === 'preview' ? 'document' : 'fields')
-      }
-    })
-    return () => useApp.setState({ focusField, setView })
-  }, [])
+  useEffect(
+    () =>
+      useApp.subscribe((s, prev) => {
+        if (s.reveal && s.reveal !== prev.reveal) useChatUI.getState().openPanel('fields', s.reveal.fieldId)
+        else if (s.view !== prev.view) useChatUI.getState().openPanel(s.view === 'preview' ? 'document' : 'fields')
+      }),
+    []
+  )
 }
 
 function Header({

@@ -248,13 +248,7 @@ export function QuestionPrompt({ question, busy, latest }: { question: QuestionS
             variant="ghost"
             size="sm"
             className="h-7 gap-1.5 px-2 text-[12.5px]"
-            onClick={() =>
-              useApp.setState((s) => {
-                const next = { ...s.answered }
-                delete next[question.id]
-                return { answered: next }
-              })
-            }
+            onClick={() => useApp.getState().reopenQuestion(question.id)}
           >
             <Undo2 className="size-3.5" /> Answer now
           </Button>

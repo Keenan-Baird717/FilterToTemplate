@@ -36,14 +36,11 @@ export default function Canvas() {
     return () => clearInterval(t)
   }, [parsing, advanceParsing])
 
-  // The command menu's "jump to field" only flashes the field in the shared
-  // store; on the canvas that means: go to it on the page and open its card.
+  // The command menu's "jump to field": go to it on the page and open its card.
   useEffect(
     () =>
       useApp.subscribe((s, prev) => {
-        if (s.flash === prev.flash || s.fields !== prev.fields || s.rates !== prev.rates) return
-        const id = Object.keys(s.flash).find((k) => s.flash[k] !== prev.flash[k])
-        if (id) useCanvas.getState().openField(id, { scroll: true, focus: true })
+        if (s.reveal && s.reveal !== prev.reveal) useCanvas.getState().openField(s.reveal.fieldId, { scroll: true, focus: true })
       }),
     []
   )
