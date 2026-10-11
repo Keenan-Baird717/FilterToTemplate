@@ -22,7 +22,7 @@ import { CitationChip, StatusChip, statusMeta } from './status'
  * extra content under a value (e.g. answer controls), and row selection.
  */
 export interface FieldRowOptions {
-  conflictNote?: ReactNode
+  conflictNote?: ReactNode | ((fieldId: string) => ReactNode)
   renderExtra?: (fieldId: string, field: FieldState | undefined) => ReactNode
   selectedId?: string | null
   onSelect?: (fieldId: string) => void
@@ -232,7 +232,7 @@ export function FieldRow({ def, field }: { def: FieldDef; field: FieldState | un
       data-selected={options.selectedId === def.id || undefined}
       onClick={options.onSelect ? () => options.onSelect?.(def.id) : undefined}
       className={cn(
-        'grid grid-cols-1 gap-x-5 gap-y-2 px-4 py-3.5 @lg:grid-cols-[168px_minmax(0,1fr)_auto] @lg:items-start',
+        'grid grid-cols-1 gap-x-5 gap-y-2 px-4 py-3.5 @lg:grid-cols-[168px_minmax(0,1fr)_auto] @lg:items-start data-[selected]:bg-cobalt-soft/40',
         wash && 'field-wash'
       )}
     >
@@ -257,7 +257,8 @@ export function FieldRow({ def, field }: { def: FieldDef; field: FieldState | un
                 ))}
               </div>
             ))}
-            <p className="text-[12px] text-warn">{options.conflictNote ?? 'Two documents disagree. Answer in the chat to choose one.'}</p>
+            <p className="text-[12px] text-warn">{(typeof options.conflictNote === 'function' ? options.conflictNote(def.id) : options.conflictNote) ??
+                'Two documents disagree. Answer in the chat to choose one.'}</p>
           </div>
         ) : editing ? (
           <Input

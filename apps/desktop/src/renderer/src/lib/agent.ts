@@ -115,8 +115,11 @@ export function useParsingTicker() {
 
 /** Send answers for a question set; the agent applies them and continues. */
 export function submitAnswers(question: QuestionSet, values: Record<string, string>) {
-  useApp.getState().answer(question.id, values)
-  const lines = question.items.map((item) => {
+  const { fields, answer } = useApp.getState()
+  answer(question.id, values)
+  // After a reopen, items already settled shouldn't read as "skipped".
+  const relevant = question.items.filter((i) => values[i.fieldId]?.trim() || ['conflict', 'missing'].includes(fields[i.fieldId]?.status ?? ''))
+  const lines = (relevant.length ? relevant : question.items).map((item) => {
     const v = values[item.fieldId]?.trim()
     const shown = item.options?.find((o) => o.value === v)?.display ?? v
     return `${item.label.replace(/\?$/, '')}: ${shown || 'skipped'}`

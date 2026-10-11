@@ -27,7 +27,7 @@ export default function Workbench() {
     <div className="flex h-full flex-col bg-ground text-ink">
       <TitleBar />
       {/* Wide: three panes side by side. Narrow: one pane at a time with a tab bar. */}
-      <main className="grid min-h-0 flex-1 grid-cols-1 grid-rows-[minmax(0,1fr)] overflow-hidden lg:grid-cols-[232px_minmax(0,1fr)_340px] xl:grid-cols-[264px_minmax(0,1fr)_400px]">
+      <main className="grid min-h-0 flex-1 grid-cols-1 grid-rows-[minmax(0,1fr)] overflow-clip lg:grid-cols-[232px_minmax(0,1fr)_340px] xl:grid-cols-[264px_minmax(0,1fr)_400px]">
         <div className={cn('min-h-0 border-rule lg:block lg:border-r', pane === 'sources' ? 'block' : 'hidden')}>
           <SourcesPane />
         </div>
