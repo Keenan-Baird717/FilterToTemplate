@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/command'
 import { runFill } from '@/lib/chat'
 import { useApp } from '@/lib/store'
+import { variants } from '@/variants/registry'
 import { DocBadge } from './status'
 
 export function CommandMenu() {
@@ -55,6 +56,16 @@ export function CommandMenu() {
             <CommandItem key={d.id} value={`doc ${d.name} ${d.id}`} onSelect={() => run(() => useApp.getState().openSource({ docId: d.id, page: d.content[0]?.n }))}>
               <DocBadge kind={d.kind} className="w-9" />
               <span className="truncate">{d.name}</span>
+            </CommandItem>
+          ))}
+        </CommandGroup>
+        <CommandSeparator />
+        <CommandGroup heading="Prototypes">
+          {variants.map((v, i) => (
+            <CommandItem key={v.id} value={`prototype ${v.name} ${v.thesis}`} onSelect={() => run(() => useApp.getState().setVariant(v.id))}>
+              <span className="w-4 text-center font-mono text-[11px] text-ink-3">{i}</span>
+              <span>{v.name}</span>
+              <span className="ml-auto truncate pl-3 text-[11px] text-ink-3">{v.thesis}</span>
             </CommandItem>
           ))}
         </CommandGroup>

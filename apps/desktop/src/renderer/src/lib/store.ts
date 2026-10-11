@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { documents as demoDocuments, fieldDefs, foundRates, initialFields, sections, type DemoDocument } from '../../../agent-core/demo-data'
 import type { FieldState, FieldStatus, FillOp, RatesState, SourceRef } from '../../../shared/protocol'
+import { defaultVariant, variantFromHash, variants } from '../variants/registry'
 
 export type Theme = 'system' | 'light' | 'dark'
 export type Pane = 'sources' | 'template' | 'chat'
@@ -25,11 +26,14 @@ interface AppState {
   highlight: boolean
   flash: Record<string, number>
   commandOpen: boolean
+  variant: string
 
   apply: (op: FillOp) => void
   answer: (questionId: string, answers: Record<string, string> | 'skipped') => void
   editField: (fieldId: string, value: string) => void
   approveSection: (sectionId: string) => void
+  /** Mark one verified or user-answered field (or 'hourlyRates') as approved. */
+  approveField: (fieldId: string) => void
   openSource: (target: SourceTarget) => void
   closeSource: () => void
   setView: (view: AppState['view']) => void
@@ -38,6 +42,8 @@ interface AppState {
   setHighlight: (on: boolean) => void
   setCommandOpen: (open: boolean) => void
   focusField: (fieldId: string) => void
+  reset: () => void
+  setVariant: (id: string) => void
   addFiles: (files: { name: string }[]) => string[]
   advanceParsing: () => string[]
 }
@@ -84,6 +90,7 @@ export const useApp = create<AppState>((set, get) => ({
   highlight: true,
   flash: {},
   commandOpen: false,
+  variant: variantFromHash(typeof location === 'undefined' ? '' : location.hash).id,
 
   apply: (op) => {
     switch (op.op) {
@@ -143,6 +150,16 @@ export const useApp = create<AppState>((set, get) => ({
     })
   },
 
+  approveField: (fieldId) =>
+    set((s) => {
+      if (fieldId === 'hourlyRates') {
+        return s.rates.status === 'verified' ? { rates: { ...s.rates, status: 'approved' }, flash: { ...s.flash, hourlyRates: Date.now() } } : {}
+      }
+      const f = s.fields[fieldId]
+      if (!f || (f.status !== 'verified' && f.status !== 'user_answered')) return {}
+      return { fields: { ...s.fields, [fieldId]: { ...f, status: 'approved' } }, flash: { ...s.flash, [fieldId]: Date.now() } }
+    }),
+
   openSource: (target) => set({ source: target }),
   closeSource: () => set({ source: null }),
   setView: (view) => set({ view }),
@@ -159,6 +176,25 @@ export const useApp = create<AppState>((set, get) => ({
       document.getElementById(`field-${fieldId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
       set((st) => ({ flash: { ...st.flash, [fieldId]: Date.now() } }))
     })
+  },
+
+  reset: () =>
+    set({
+      fields: initialFields(),
+      rates: structuredClone(foundRates),
+      activity: null,
+      answered: {},
+      docs: structuredClone(demoDocuments),
+      source: null,
+      view: 'fields',
+      flash: {}
+    }),
+
+  setVariant: (id) => {
+    const v = variants.find((x) => x.id === id) ?? defaultVariant
+    if (typeof history !== 'undefined') history.replaceState(null, '', v.id === defaultVariant.id ? location.pathname + location.search : `#${v.id}`)
+    document.documentElement.dataset.variant = v.id
+    set({ variant: v.id, source: null })
   },
 
   addFiles: (files) => {

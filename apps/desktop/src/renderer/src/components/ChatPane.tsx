@@ -116,7 +116,7 @@ export function ChatPane() {
   )
 }
 
-function ChatMessage({ message, busy }: { message: AppUIMessage; busy: boolean }) {
+export function ChatMessage({ message, busy }: { message: AppUIMessage; busy: boolean }) {
   if (message.role === 'user') {
     const answer = message.metadata?.answer
     return (
@@ -159,7 +159,7 @@ function ChatMessage({ message, busy }: { message: AppUIMessage; busy: boolean }
   )
 }
 
-function ToolCall({ part }: { part: DynamicToolUIPart }) {
+export function ToolCall({ part }: { part: DynamicToolUIPart }) {
   return (
     <Tool className="mb-0 rounded-lg border-rule bg-panel-2/50">
       <ToolHeader

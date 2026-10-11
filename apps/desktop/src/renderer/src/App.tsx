@@ -1,56 +1,49 @@
-import { FileText, FolderOpen, MessagesSquare } from 'lucide-react'
-import { ChatPane } from '@/components/ChatPane'
+import { Suspense, useEffect } from 'react'
 import { CommandMenu } from '@/components/CommandMenu'
-import { FillPane } from '@/components/FillPane'
+import { PrototypeBar } from '@/components/PrototypeBar'
 import { SourceSheet } from '@/components/SourceSheet'
-import { SourcesPane } from '@/components/SourcesPane'
-import { TitleBar } from '@/components/TitleBar'
 import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
-import { useApp, type Pane } from '@/lib/store'
-import { cn } from '@/lib/utils'
-
-const tabs: { id: Pane; label: string; icon: typeof FileText }[] = [
-  { id: 'sources', label: 'Sources', icon: FolderOpen },
-  { id: 'template', label: 'Template', icon: FileText },
-  { id: 'chat', label: 'Agent', icon: MessagesSquare }
-]
+import { useApp } from '@/lib/store'
+import { variantFromHash, variants } from '@/variants/registry'
 
 export default function App() {
-  const pane = useApp((s) => s.pane)
-  const setPane = useApp((s) => s.setPane)
+  const variantId = useApp((s) => s.variant)
+  const setVariant = useApp((s) => s.setVariant)
   const theme = useApp((s) => s.theme)
+  const variant = variants.find((v) => v.id === variantId) ?? variants[0]
+  const View = variant.Component
+
+  useEffect(() => {
+    document.documentElement.dataset.variant = variant.id
+  }, [variant.id])
+
+  useEffect(() => {
+    const onHash = () => setVariant(variantFromHash(location.hash).id)
+    const onKey = (e: KeyboardEvent) => {
+      const n = Number(e.key)
+      if (e.altKey && !e.metaKey && !e.ctrlKey && n >= 1 && n <= variants.length) {
+        e.preventDefault()
+        setVariant(variants[n - 1].id)
+      }
+    }
+    window.addEventListener('hashchange', onHash)
+    window.addEventListener('keydown', onKey)
+    return () => {
+      window.removeEventListener('hashchange', onHash)
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [setVariant])
 
   return (
     <TooltipProvider delayDuration={400}>
       <div className="flex h-full flex-col bg-ground text-ink">
-        <TitleBar />
-        {/* Wide: three panes side by side. Narrow: one pane at a time with a tab bar. */}
-        <main className="grid min-h-0 flex-1 grid-cols-1 grid-rows-[minmax(0,1fr)] overflow-hidden lg:grid-cols-[232px_minmax(0,1fr)_340px] xl:grid-cols-[264px_minmax(0,1fr)_400px]">
-          <div className={cn('min-h-0 border-rule lg:block lg:border-r', pane === 'sources' ? 'block' : 'hidden')}>
-            <SourcesPane />
-          </div>
-          <div className={cn('min-h-0 lg:block', pane === 'template' ? 'block' : 'hidden')}>
-            <FillPane />
-          </div>
-          <div className={cn('min-h-0 border-rule lg:block lg:border-l', pane === 'chat' ? 'block' : 'hidden')}>
-            <ChatPane />
-          </div>
-        </main>
-        <nav className="grid shrink-0 grid-cols-3 border-t border-rule bg-panel lg:hidden" aria-label="Panes">
-          {tabs.map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              onClick={() => setPane(t.id)}
-              aria-current={pane === t.id ? 'page' : undefined}
-              className={cn('flex flex-col items-center gap-0.5 py-2 text-[11px]', pane === t.id ? 'text-cobalt' : 'text-ink-3')}
-            >
-              <t.icon className="size-4.5" />
-              {t.label}
-            </button>
-          ))}
-        </nav>
+        <PrototypeBar />
+        <div className="min-h-0 flex-1">
+          <Suspense fallback={<div className="h-full bg-ground" />}>
+            <View />
+          </Suspense>
+        </div>
       </div>
       <SourceSheet />
       <CommandMenu />

@@ -1,0 +1,112 @@
+import { Monitor, Moon, RotateCcw, Sun } from 'lucide-react'
+import { toast } from 'sonner'
+import { Button } from '@/components/ui/button'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { resetExample } from '@/lib/agent'
+import { useApp, type Theme } from '@/lib/store'
+import { cn } from '@/lib/utils'
+import { variants } from '@/variants/registry'
+
+export function isMacLike() {
+  const platform = window.ftt?.platform
+  return platform === 'darwin' || (!platform && /Mac|iPhone|iPad/.test(navigator.platform))
+}
+
+const nextTheme: Record<Theme, Theme> = { system: 'light', light: 'dark', dark: 'system' }
+const themeIcon = { system: Monitor, light: Sun, dark: Moon }
+const themeLabel = { system: 'Theme: match system', light: 'Theme: light', dark: 'Theme: dark' }
+
+/**
+ * Top strip for comparing prototypes. It also owns the window chrome: the
+ * drag region and room for the macOS traffic lights or Windows controls.
+ */
+export function PrototypeBar() {
+  const current = useApp((s) => s.variant)
+  const setVariant = useApp((s) => s.setVariant)
+  const theme = useApp((s) => s.theme)
+  const setTheme = useApp((s) => s.setTheme)
+  const ThemeIcon = themeIcon[theme]
+  const mac = isMacLike()
+
+  return (
+    <header
+      className={cn(
+        'drag flex h-10 shrink-0 items-center gap-2 border-b border-rule bg-ground pr-2 pl-3',
+        window.ftt && mac && 'pl-[84px]',
+        window.ftt && !mac && 'pr-[150px]'
+      )}
+    >
+      <div className="flex shrink-0 items-center gap-2">
+        <Logo />
+        <span className="hidden text-[13px] font-semibold sm:inline">FilterToTemplate</span>
+        <span className="hidden text-[11px] text-ink-3 lg:inline">prototypes</span>
+      </div>
+
+      <nav className="no-drag flex min-w-0 flex-1 justify-start overflow-x-auto [scrollbar-width:none] sm:justify-center" aria-label="Prototypes">
+        <div className="flex items-center gap-0.5 rounded-lg bg-panel-2 p-0.5">
+          {variants.map((v, i) => (
+            <Tooltip key={v.id}>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  onClick={() => setVariant(v.id)}
+                  aria-current={current === v.id ? 'page' : undefined}
+                  className={cn(
+                    'flex h-7 shrink-0 items-center gap-1.5 rounded-md px-2.5 text-[12px] whitespace-nowrap transition-colors',
+                    current === v.id ? 'bg-panel font-medium text-ink shadow-[0_0_0_1px_var(--rule)]' : 'text-ink-2 hover:text-ink'
+                  )}
+                >
+                  <span className="num font-mono text-[10px] text-ink-3">{i}</span>
+                  {v.name}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                {v.thesis} · Alt+{i + 1}
+              </TooltipContent>
+            </Tooltip>
+          ))}
+        </div>
+      </nav>
+
+      <div className="no-drag flex shrink-0 items-center gap-0.5">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-8"
+              aria-label="Reset example"
+              onClick={() => {
+                resetExample()
+                toast('Example reset', { description: 'Fields, questions and chat are back to the start.' })
+              }}
+            >
+              <RotateCcw className="size-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">Reset example</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="icon" className="size-8" onClick={() => setTheme(nextTheme[theme])} aria-label={themeLabel[theme]}>
+              <ThemeIcon className="size-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">{themeLabel[theme]}</TooltipContent>
+        </Tooltip>
+      </div>
+    </header>
+  )
+}
+
+/** Mark: a page whose lines resolve into filled fields. */
+function Logo() {
+  return (
+    <svg viewBox="0 0 20 20" className="size-5 shrink-0" aria-hidden>
+      <rect x="3" y="1.5" width="14" height="17" rx="2.5" fill="var(--cobalt)" />
+      <rect x="6" y="6" width="8" height="1.6" rx="0.8" fill="var(--on-cobalt)" opacity="0.55" />
+      <rect x="6" y="9.2" width="5.5" height="1.6" rx="0.8" fill="var(--on-cobalt)" opacity="0.55" />
+      <rect x="6" y="12.4" width="8" height="2.2" rx="1.1" fill="var(--marker)" />
+    </svg>
+  )
+}

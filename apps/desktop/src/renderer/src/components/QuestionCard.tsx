@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { chat } from '@/lib/chat'
+import { skipQuestion, submitAnswers } from '@/lib/agent'
 import { useApp } from '@/lib/store'
 import { CitationChip } from './status'
 
@@ -17,7 +17,6 @@ const emailOk = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim())
  */
 export function QuestionCard({ question, disabled }: { question: QuestionSet; disabled: boolean }) {
   const answered = useApp((s) => s.answered[question.id])
-  const answer = useApp((s) => s.answer)
   const [values, setValues] = useState<Record<string, string>>({})
   const [touched, setTouched] = useState(false)
 
@@ -39,13 +38,7 @@ export function QuestionCard({ question, disabled }: { question: QuestionSet; di
   const submit = () => {
     setTouched(true)
     if (!ready || emailInvalid) return
-    answer(question.id, values)
-    const lines = question.items.map((item) => {
-      const v = values[item.fieldId]?.trim()
-      const shown = item.options?.find((o) => o.value === v)?.display ?? v
-      return `${item.label.replace(/\?$/, '')}: ${shown || 'skipped'}`
-    })
-    void chat.sendMessage({ text: lines.join('\n'), metadata: { answer: { questionId: question.id, answers: values } } })
+    submitAnswers(question, values)
   }
 
   return (
@@ -120,7 +113,7 @@ export function QuestionCard({ question, disabled }: { question: QuestionSet; di
         ))}
         {touched && !ready && <p className="text-[12px] text-bad">Choose an option for each question to continue.</p>}
         <div className="flex items-center justify-end gap-2">
-          <Button type="button" variant="ghost" size="sm" className="h-8 text-[12px]" disabled={disabled} onClick={() => answer(question.id, 'skipped')}>
+          <Button type="button" variant="ghost" size="sm" className="h-8 text-[12px]" disabled={disabled} onClick={() => skipQuestion(question)}>
             Skip for now
           </Button>
           <Button type="submit" size="sm" className="h-8 text-[12px]" disabled={disabled}>
