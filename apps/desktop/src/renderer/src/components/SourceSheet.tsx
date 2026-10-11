@@ -49,7 +49,7 @@ export function SourceSheet() {
                       onClick={() => openSource({ docId: doc.id, page: p.n, quote: cites.find((c) => c.source.page === p.n)?.source.quote })}
                       className={cn(
                         'rounded-md border px-2 py-0.5 font-mono text-[11px]',
-                        page?.n === p.n ? 'border-cobalt/50 bg-cobalt-soft text-cobalt' : 'border-rule text-ink-2 hover:text-ink'
+                        page?.n === p.n ? 'border-cobalt/50 bg-cobalt-soft text-cobalt-ink' : 'border-rule text-ink-2 hover:text-ink'
                       )}
                     >
                       p.{p.n}

@@ -1,4 +1,5 @@
 import { FileText, FolderOpen, MessagesSquare } from 'lucide-react'
+import { useEffect } from 'react'
 import { ChatPane } from '@/components/ChatPane'
 import { FillPane } from '@/components/FillPane'
 import { SourcesPane } from '@/components/SourcesPane'
@@ -16,6 +17,11 @@ const tabs: { id: Pane; label: string; icon: typeof FileText }[] = [
 export default function Workbench() {
   const pane = useApp((s) => s.pane)
   const setPane = useApp((s) => s.setPane)
+  const reveal = useApp((s) => s.reveal)
+
+  useEffect(() => {
+    if (reveal) useApp.getState().focusField(reveal.fieldId)
+  }, [reveal])
 
   return (
     <div className="flex h-full flex-col bg-ground text-ink">

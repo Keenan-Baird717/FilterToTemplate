@@ -11,11 +11,21 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { getAgent } from '@/lib/agent-client'
 import { chat, runFill } from '@/lib/chat'
+import { useApp } from '@/lib/store'
+import { cn } from '@/lib/utils'
 import { QuestionCard } from './QuestionCard'
 
 const suggestions = ['Where did Net 30 come from?', 'Which rates did you use?', 'Why is litigation excluded?']
 
-export function ChatPane() {
+export interface ChatPaneProps {
+  /** 'inline' renders follow-up forms in the conversation; 'pointer' shows a one-line link instead. */
+  questions?: 'inline' | 'pointer'
+  /** Called when the user clicks the pointer line (e.g. to reveal your own Needs-you UI). */
+  onQuestionPointer?: () => void
+  className?: string
+}
+
+export function ChatPane({ questions = 'inline', onQuestionPointer, className }: ChatPaneProps = {}) {
   const { messages, status, sendMessage, stop } = useChat({ chat })
   const [input, setInput] = useState('')
   const [engine, setEngine] = useState('Connecting…')
@@ -34,7 +44,7 @@ export function ChatPane() {
   }
 
   return (
-    <section className="flex h-full min-h-0 flex-col bg-panel" aria-label="Agent">
+    <section className={cn('flex h-full min-h-0 flex-col bg-panel', className)} aria-label="Agent">
       <header className="flex items-center justify-between gap-3 border-b border-rule px-4 py-3">
         <div className="min-w-0">
           <h2 className="text-[13px] font-semibold">Agent</h2>
@@ -51,7 +61,7 @@ export function ChatPane() {
       <Conversation className="min-h-0 flex-1">
         <ConversationContent className="gap-5 px-4 py-5">
           {messages.map((m) => (
-            <ChatMessage key={m.id} message={m} busy={busy} />
+            <ChatMessage key={m.id} message={m} busy={busy} questions={questions} onQuestionPointer={onQuestionPointer} />
           ))}
           {status === 'submitted' && <Shimmer className="text-[13px]">Thinking…</Shimmer>}
         </ConversationContent>
@@ -116,7 +126,17 @@ export function ChatPane() {
   )
 }
 
-export function ChatMessage({ message, busy }: { message: AppUIMessage; busy: boolean }) {
+export function ChatMessage({
+  message,
+  busy,
+  questions = 'inline',
+  onQuestionPointer
+}: {
+  message: AppUIMessage
+  busy: boolean
+  questions?: 'inline' | 'pointer'
+  onQuestionPointer?: () => void
+}) {
   if (message.role === 'user') {
     const answer = message.metadata?.answer
     return (
@@ -124,7 +144,7 @@ export function ChatMessage({ message, busy }: { message: AppUIMessage; busy: bo
         <MessageContent className="max-w-[88%] rounded-xl bg-cobalt-soft px-3.5 py-2.5 text-[13px] text-ink group-[.is-user]:bg-cobalt-soft group-[.is-user]:px-3.5 group-[.is-user]:py-2.5">
           {answer ? (
             <div className="flex flex-col gap-1">
-              <span className="eyebrow text-cobalt">Answers</span>
+              <span className="eyebrow text-cobalt-ink">Answers</span>
               {message.parts.map((p, i) => (p.type === 'text' ? <span key={i} className="whitespace-pre-line">{p.text}</span> : null))}
             </div>
           ) : (
@@ -149,7 +169,11 @@ export function ChatMessage({ message, busy }: { message: AppUIMessage; busy: bo
             case 'dynamic-tool':
               return <ToolCall key={part.toolCallId} part={part} />
             case 'data-question':
-              return <QuestionCard key={part.id ?? i} question={part.data} disabled={busy} />
+              return questions === 'inline' ? (
+                <QuestionCard key={part.id ?? i} question={part.data} disabled={busy} />
+              ) : (
+                <QuestionPointer key={part.id ?? i} questionId={part.data.id} count={part.data.items.length} onClick={onQuestionPointer} />
+              )
             default:
               return null
           }
@@ -177,5 +201,19 @@ export function ToolCall({ part }: { part: DynamicToolUIPart }) {
         )}
       </ToolContent>
     </Tool>
+  )
+}
+
+function QuestionPointer({ questionId, count, onClick }: { questionId: string; count: number; onClick?: () => void }) {
+  const answered = useApp((s) => s.answered[questionId])
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex w-fit items-center gap-2 rounded-full border border-rule px-3 py-1 text-[12px] text-ink-2 transition-colors hover:border-cobalt/40 hover:text-ink"
+    >
+      <span className={cn('size-1.5 rounded-full', answered ? 'bg-ok' : 'bg-warn')} aria-hidden />
+      {answered ? (answered === 'skipped' ? 'Questions skipped' : 'Answered') : `Asked you ${count} question${count === 1 ? '' : 's'}`}
+    </button>
   )
 }

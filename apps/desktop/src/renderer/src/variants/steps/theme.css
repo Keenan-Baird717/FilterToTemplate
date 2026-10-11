@@ -12,6 +12,7 @@
   --cobalt: #f2a618;
   --cobalt-soft: #fdf1d4;
   --on-cobalt: #2a1b00;
+  --cobalt-ink: #9a5b00;
   --marker: #ffe38a;
   --marker-ink: #3b2f00;
   --ok: #127a52;
@@ -42,6 +43,8 @@
     --cobalt: #f5b53a;
     --cobalt-soft: #31270f;
     --on-cobalt: #241700;
+  --cobalt-ink: #f5b53a;
+    --cobalt-ink: #f5b53a;
     --marker: #f6d470;
     --marker-ink: #2e2400;
     --ok: #4fc490;

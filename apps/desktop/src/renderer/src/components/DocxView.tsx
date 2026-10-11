@@ -30,6 +30,8 @@ function decorate(root: HTMLElement) {
       span.className = m[1] === MARK.missing ? 'ftt-missing' : 'ftt-val'
       span.dataset.field = markerFields[Number(m[2])] ?? ''
       span.textContent = m[3]
+      span.tabIndex = 0
+      span.setAttribute('role', 'button')
       frag.append(span)
       last = m.index + m[0].length
     }
@@ -45,26 +47,47 @@ export interface DocxViewProps {
   onValueClick?: (fieldId: string, element: HTMLElement) => void
   /** Largest scale to use when fitting the page to the available width. */
   maxZoom?: number
-  /** Field to mark as selected (adds .ftt-selected to its spans). */
+  /** Field to mark as selected (adds .ftt-selected to its spans; kept across re-renders). */
   selectedField?: string | null
+  /** Called after each render swaps in a new page, with the page host element. */
+  onRendered?: (host: HTMLElement) => void
   className?: string
   /** Rendered inside the scrolled content, above the page (position: absolute works). */
   children?: ReactNode
   'aria-label'?: string
 }
 
-export function DocxView({ highlight = true, onValueClick, maxZoom = 1, selectedField, className, children, ...rest }: DocxViewProps) {
+export function DocxView({ highlight = true, onValueClick, maxZoom = 1, selectedField, onRendered, className, children, ...rest }: DocxViewProps) {
   const fields = useApp((s) => s.fields)
   const rates = useApp((s) => s.rates)
   const scrollRef = useRef<HTMLDivElement>(null)
   const hostRef = useRef<HTMLDivElement>(null)
   const [state, setState] = useState<'rendering' | 'ready' | 'error'>('rendering')
   const [zoom, setZoom] = useState(1)
+  const [renders, setRenders] = useState(0)
+  const lastRender = useRef(0)
+  const onRenderedRef = useRef(onRendered)
+  onRenderedRef.current = onRendered
 
+  const mounted = useRef(true)
+  const seq = useRef({ started: 0, applied: 0 })
+  useEffect(() => {
+    mounted.current = true
+    return () => {
+      mounted.current = false
+    }
+  }, [])
+
+  // Throttled: renders right away, then at most every ~160ms while values
+  // stream in, so a narrative being written shows up as it's written. A
+  // render already in flight is never thrown away by a newer change; results
+  // only lose to a newer render that has already been applied.
   useEffect(() => {
     registerDocumentFonts()
-    let cancelled = false
+    const wait = Math.max(0, 160 - (Date.now() - lastRender.current))
     const t = setTimeout(async () => {
+      lastRender.current = Date.now()
+      const mySeq = ++seq.current.started
       try {
         const bytes = await renderPreviewDocx()
         const staging = document.createElement('div')
@@ -77,19 +100,23 @@ export function DocxView({ highlight = true, onValueClick, maxZoom = 1, selected
           renderFooters: true,
           useBase64URL: true
         })
-        if (cancelled || !hostRef.current) return
+        const host = hostRef.current
+        if (!mounted.current || !host || mySeq < seq.current.applied) return
+        seq.current.applied = mySeq
         decorate(staging)
-        hostRef.current.replaceChildren(...staging.childNodes)
+        const focused = (document.activeElement as HTMLElement | null)?.closest?.<HTMLElement>('.ftt-docx [data-field]')
+        const focusedField = focused && host.contains(focused) ? focused.dataset.field : null
+        host.replaceChildren(...staging.childNodes)
+        if (focusedField) host.querySelector<HTMLElement>(`[data-field="${CSS.escape(focusedField)}"]`)?.focus({ preventScroll: true })
         setState('ready')
+        setRenders((n) => n + 1)
+        onRenderedRef.current?.(host)
       } catch (error) {
         console.error('[docx]', error)
-        if (!cancelled) setState('error')
+        if (mounted.current) setState('error')
       }
-    }, 180)
-    return () => {
-      cancelled = true
-      clearTimeout(t)
-    }
+    }, wait)
+    return () => clearTimeout(t)
   }, [fields, rates])
 
   useEffect(() => {
@@ -105,7 +132,7 @@ export function DocxView({ highlight = true, onValueClick, maxZoom = 1, selected
     if (!host) return
     host.querySelectorAll('.ftt-selected').forEach((n) => n.classList.remove('ftt-selected'))
     if (selectedField) host.querySelectorAll(`[data-field="${CSS.escape(selectedField)}"]`).forEach((n) => n.classList.add('ftt-selected'))
-  }, [selectedField, state, fields, rates])
+  }, [selectedField, renders])
 
   return (
     <div ref={scrollRef} className={cn('relative h-full min-h-0 overflow-auto', className)}>
@@ -122,6 +149,13 @@ export function DocxView({ highlight = true, onValueClick, maxZoom = 1, selected
           onClick={(e) => {
             const el = (e.target as HTMLElement).closest<HTMLElement>('[data-field]')
             if (el?.dataset.field) onValueClick?.(el.dataset.field, el)
+          }}
+          onKeyDown={(e) => {
+            if (e.key !== 'Enter' && e.key !== ' ') return
+            const el = (e.target as HTMLElement).closest<HTMLElement>('[data-field]')
+            if (!el?.dataset.field) return
+            e.preventDefault()
+            onValueClick?.(el.dataset.field, el)
           }}
         />
         {children}

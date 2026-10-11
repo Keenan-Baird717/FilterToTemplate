@@ -34,6 +34,13 @@ interface AppState {
   approveSection: (sectionId: string) => void
   /** Mark one verified or user-answered field (or 'hourlyRates') as approved. */
   approveField: (fieldId: string) => void
+  /** Undo an approval: back to verified, or to user_answered for values the user set. */
+  unapproveField: (fieldId: string) => void
+  /** Let a skipped or answered question set be answered again. */
+  reopenQuestion: (questionId: string) => void
+  /** Ask the current prototype to bring a field into view (command menu, links). */
+  reveal: { fieldId: string; at: number } | null
+  revealField: (fieldId: string) => void
   openSource: (target: SourceTarget) => void
   closeSource: () => void
   setView: (view: AppState['view']) => void
@@ -95,7 +102,8 @@ export const useApp = create<AppState>((set, get) => ({
   apply: (op) => {
     switch (op.op) {
       case 'reset':
-        set({ answered: {}, activity: null })
+        // Earlier question sets stay answered in history; useOpenQuestion only looks at the newest.
+        set({ activity: null })
         return
       case 'set':
         set((s) => ({
@@ -160,6 +168,27 @@ export const useApp = create<AppState>((set, get) => ({
       return { fields: { ...s.fields, [fieldId]: { ...f, status: 'approved' } }, flash: { ...s.flash, [fieldId]: Date.now() } }
     }),
 
+  unapproveField: (fieldId) =>
+    set((s) => {
+      if (fieldId === 'hourlyRates') return s.rates.status === 'approved' ? { rates: { ...s.rates, status: 'verified' } } : {}
+      const f = s.fields[fieldId]
+      if (!f || f.status !== 'approved') return {}
+      return { fields: { ...s.fields, [fieldId]: { ...f, status: f.by === 'user' ? 'user_answered' : 'verified' } } }
+    }),
+
+  reopenQuestion: (questionId) =>
+    set((s) => {
+      const { [questionId]: _removed, ...rest } = s.answered
+      return { answered: rest }
+    }),
+
+  reveal: null,
+  revealField: (fieldId) => {
+    set((s) => ({ reveal: { fieldId, at: Date.now() }, flash: { ...s.flash, [fieldId]: Date.now() } }))
+    // Generic fallback for layouts that render rows with id="field-<id>".
+    requestAnimationFrame(() => document.getElementById(`field-${fieldId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }))
+  },
+
   openSource: (target) => set({ source: target }),
   closeSource: () => set({ source: null }),
   setView: (view) => set({ view }),
@@ -187,7 +216,8 @@ export const useApp = create<AppState>((set, get) => ({
       docs: structuredClone(demoDocuments),
       source: null,
       view: 'fields',
-      flash: {}
+      flash: {},
+      reveal: null
     }),
 
   setVariant: (id) => {

@@ -33,7 +33,7 @@ function display(f: FieldState | undefined): string | null {
 
 export function toRenderData(fields: Record<string, FieldState>, rates: RatesState, opts: RenderOptions = {}) {
   const wrap = (fieldId: string, text: string | null) => {
-    const label = `[${fieldDefs[fieldId]?.label ?? fieldId}]`
+    const label = `[${fieldDefs[fieldId]?.label ?? (fieldId === 'hourlyRates' ? 'Hourly rates' : fieldId)}]`
     if (!opts.preview) return text ?? label
     const ref = markerFields.indexOf(fieldId)
     return text === null ? `${MARK.missing}${ref}${MARK.sep}${label}${MARK.end}` : `${MARK.start}${ref}${MARK.sep}${text}${MARK.end}`

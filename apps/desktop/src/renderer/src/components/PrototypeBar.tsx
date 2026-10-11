@@ -45,7 +45,14 @@ export function PrototypeBar() {
       <nav className="no-drag flex min-w-0 flex-1 justify-start overflow-x-auto [scrollbar-width:none] sm:justify-center" aria-label="Prototypes">
         <div className="flex items-center gap-0.5 rounded-lg bg-panel-2 p-0.5">
           {variants.map((v, i) => (
-            <Tooltip key={v.id}>
+            <span key={v.id} className="contents">
+            {i > 0 && variants[i - 1].round !== v.round && (
+              <span className="mx-1 flex shrink-0 items-center gap-1.5 pl-1 text-[10px] font-medium tracking-wide text-ink-3 uppercase" aria-hidden>
+                <span className="h-4 w-px bg-rule" />
+                Round {v.round}
+              </span>
+            )}
+            <Tooltip>
               <TooltipTrigger asChild>
                 <button
                   type="button"
@@ -61,9 +68,11 @@ export function PrototypeBar() {
                 </button>
               </TooltipTrigger>
               <TooltipContent side="bottom">
-                {v.thesis} · Alt+{i + 1}
+                {v.thesis}
+                {i < 9 ? ` · Alt+${i + 1}` : ''}
               </TooltipContent>
             </Tooltip>
+            </span>
           ))}
         </div>
       </nav>

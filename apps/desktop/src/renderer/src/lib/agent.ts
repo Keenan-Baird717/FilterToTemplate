@@ -1,5 +1,6 @@
 import { useChat } from '@ai-sdk/react'
 import { useEffect, useMemo, useState } from 'react'
+import { toast } from 'sonner'
 import { initialMessages } from '../../../agent-core/demo-data'
 import type { AppUIMessage, QuestionSet } from '../../../shared/protocol'
 import { getAgent } from './agent-client'
@@ -39,15 +40,77 @@ export function questionsIn(messages: AppUIMessage[]): QuestionSet[] {
   return out
 }
 
-/** The newest question set that hasn't been answered or skipped, or null. */
+/**
+ * The open question set, or null. Only the newest set counts (a fresh fill
+ * supersedes older ones), and only while one of its fields still needs an
+ * answer, so nothing is asked while the agent is refilling.
+ */
 export function useOpenQuestion(): QuestionSet | null {
   const { messages } = useChat({ chat })
   const answered = useApp((s) => s.answered)
+  const fields = useApp((s) => s.fields)
   return useMemo(() => {
-    const all = questionsIn(messages)
-    for (let i = all.length - 1; i >= 0; i--) if (!answered[all[i].id]) return all[i]
-    return null
-  }, [messages, answered])
+    const newest = questionsIn(messages).at(-1)
+    if (!newest || answered[newest.id]) return null
+    const live = newest.items.some((i) => ['conflict', 'missing'].includes(fields[i.fieldId]?.status ?? ''))
+    return live ? newest : null
+  }, [messages, answered, fields])
+}
+
+/**
+ * Which documents are in play right now: the ones the agent's running tool
+ * calls touch, and the sources of fields that changed in the last few seconds.
+ * Lets a sources panel wake up when it matters.
+ */
+export function useLiveSources(windowMs = 4000) {
+  const { messages, status } = useChat({ chat })
+  const fields = useApp((s) => s.fields)
+  const rates = useApp((s) => s.rates)
+  const flash = useApp((s) => s.flash)
+  const [now, setNow] = useState(() => Date.now())
+  const recentStamp = Math.max(0, ...Object.values(flash))
+  useEffect(() => {
+    if (Date.now() - recentStamp > windowMs) return
+    const t = setInterval(() => setNow(Date.now()), 500)
+    return () => clearInterval(t)
+  }, [recentStamp, windowMs])
+
+  return useMemo(() => {
+    const reading = new Set<string>()
+    const busy = status === 'submitted' || status === 'streaming'
+    const last = messages.at(-1)
+    if (busy && last?.role === 'assistant') {
+      for (const p of last.parts) {
+        if (p.type !== 'dynamic-tool') continue
+        const input = (p.input ?? {}) as { docId?: unknown; documents?: unknown }
+        const output = (p.state === 'output-available' ? (p.output ?? {}) : {}) as { documents?: unknown }
+        const ids = (v: unknown) => (Array.isArray(v) ? v.filter((d): d is string => typeof d === 'string') : [])
+        if (p.state === 'input-available' && typeof input.docId === 'string') reading.add(input.docId)
+        if (p.state === 'input-available') ids(input.documents).forEach((d) => reading.add(d))
+        if (p === last.parts.at(-1)) ids(output.documents).forEach((d) => reading.add(d))
+      }
+    }
+    const recent = new Map<string, number>()
+    for (const [fieldId, at] of Object.entries(flash)) {
+      if (now - at > windowMs) continue
+      const refs = fieldId === 'hourlyRates' ? rates.rows.flatMap((r) => (r.source ? [r.source] : [])) : (fields[fieldId]?.sources ?? [])
+      for (const ref of refs) recent.set(ref.docId, Math.max(recent.get(ref.docId) ?? 0, at))
+    }
+    return { reading, recent, busy }
+  }, [messages, status, flash, fields, rates, now, windowMs])
+}
+
+/** Advances simulated parsing for files added in the prototype. Mount once per layout. */
+export function useParsingTicker() {
+  const parsing = useApp((s) => s.docs.some((d) => d.status === 'parsing' && d.id !== 'D8'))
+  useEffect(() => {
+    if (!parsing) return
+    const t = setInterval(() => {
+      const done = useApp.getState().advanceParsing()
+      if (done.length) toast.success(done.length === 1 ? `Indexed ${done[0]}` : `Indexed ${done.length} files`)
+    }, 450)
+    return () => clearInterval(t)
+  }, [parsing])
 }
 
 /** Send answers for a question set; the agent applies them and continues. */

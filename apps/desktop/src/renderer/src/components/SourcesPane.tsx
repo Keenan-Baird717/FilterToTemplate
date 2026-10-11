@@ -1,8 +1,7 @@
 import { HardDrive, Plus, Upload } from 'lucide-react'
-import { useEffect } from 'react'
 import { useDropzone } from 'react-dropzone'
-import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
+import { useParsingTicker } from '@/lib/agent'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { citationsByDoc, useApp } from '@/lib/store'
 import { cn } from '@/lib/utils'
@@ -23,20 +22,10 @@ export function SourcesPane() {
   const source = useApp((s) => s.source)
   const openSource = useApp((s) => s.openSource)
   const addFiles = useApp((s) => s.addFiles)
-  const advanceParsing = useApp((s) => s.advanceParsing)
   const cites = citationsByDoc(fields, rates)
   const pages = docs.reduce((n, d) => n + d.pages, 0)
-  const parsing = docs.some((d) => d.status === 'parsing' && d.id !== 'D8')
 
-  // Simulated ingest progress for files dropped into the preview.
-  useEffect(() => {
-    if (!parsing) return
-    const t = setInterval(() => {
-      const done = advanceParsing()
-      if (done.length) toast.success(done.length === 1 ? `Indexed ${done[0]}` : `Indexed ${done.length} files`)
-    }, 450)
-    return () => clearInterval(t)
-  }, [parsing, advanceParsing])
+  useParsingTicker()
 
   const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
     noClick: true,
@@ -107,7 +96,7 @@ export function SourcesPane() {
                     )}
                   </span>
                   {count > 0 && (
-                    <span className="num mt-0.5 rounded-full bg-cobalt-soft px-1.5 font-mono text-[10px] leading-[18px] text-cobalt" title={`Cited ${count} times`}>
+                    <span className="num mt-0.5 rounded-full bg-cobalt-soft px-1.5 font-mono text-[10px] leading-[18px] text-cobalt-ink" title={`Cited ${count} times`}>
                       {count}
                     </span>
                   )}
@@ -124,7 +113,7 @@ export function SourcesPane() {
       </div>
 
       {isDragActive && (
-        <div className="pointer-events-none absolute inset-2 flex items-center justify-center rounded-xl border-2 border-dashed border-cobalt bg-cobalt-soft/90 text-[13px] font-medium text-cobalt">
+        <div className="pointer-events-none absolute inset-2 flex items-center justify-center rounded-xl border-2 border-dashed border-cobalt bg-cobalt-soft/90 text-[13px] font-medium text-cobalt-ink">
           Drop to add to this project
         </div>
       )}

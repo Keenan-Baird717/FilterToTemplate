@@ -43,7 +43,7 @@ export function CommandMenu() {
         <CommandEmpty>Nothing matches. Try a field name like “retainer”.</CommandEmpty>
         <CommandGroup heading="Fields">
           {Object.values(fieldDefs).map((f) => (
-            <CommandItem key={f.id} value={`field ${f.label} ${f.id}`} onSelect={() => run(() => useApp.getState().focusField(f.id))}>
+            <CommandItem key={f.id} value={`field ${f.label} ${f.id}`} onSelect={() => run(() => useApp.getState().revealField(f.id))}>
               <TextCursorInput className="text-ink-3" />
               <span>{f.label}</span>
               <span className="ml-auto font-mono text-[11px] text-ink-3">{f.id}</span>

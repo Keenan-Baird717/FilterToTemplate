@@ -27,6 +27,8 @@
   --cobalt: #2743c4;
   --cobalt-soft: #e8ecfb;
   --on-cobalt: #ffffff;
+  /* Accent used as text or small marks; follows --cobalt unless a theme needs a darker ink. */
+  --cobalt-ink: var(--cobalt);
   --marker: #ffe27a;
   --marker-ink: #3d3200;
   --ok: #17845a;
@@ -150,6 +152,7 @@
   --color-cobalt: var(--cobalt);
   --color-cobalt-soft: var(--cobalt-soft);
   --color-on-cobalt: var(--on-cobalt);
+  --color-cobalt-ink: var(--cobalt-ink);
   --color-marker: var(--marker);
   --color-marker-ink: var(--marker-ink);
   --color-ok: var(--ok);
@@ -244,6 +247,12 @@
 }
 .ftt-docx .ftt-val:hover {
   background: color-mix(in srgb, var(--paper-mark) 16%, transparent);
+}
+.ftt-docx .ftt-selected {
+  outline: 2px solid var(--paper-mark);
+  outline-offset: 2px;
+  background: color-mix(in srgb, var(--paper-mark) 14%, transparent);
+  border-radius: 2px;
 }
 .ftt-docx .ftt-missing {
   cursor: pointer;

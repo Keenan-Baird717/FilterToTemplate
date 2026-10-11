@@ -117,7 +117,7 @@ async function runFill(turn: Turn) {
 
   turn.activity('Building document catalog')
   await turn.text('Starting a fresh fill of **Engagement Letter v2.1** from 7 indexed documents.')
-  await turn.tool('build_catalog', 'Catalogued 7 documents', { documents: 7 }, { types: ['agreement', 'sow', 'notes', 'rate card', 'email', 'certificate', 'amendment'] }, 600)
+  await turn.tool('build_catalog', 'Catalogued 7 documents', { count: 7 }, { types: ['agreement', 'sow', 'notes', 'rate card', 'email', 'certificate', 'amendment'] }, 600)
 
   const passes: { label: string; query: string[]; fields: string[] }[] = [
     { label: 'Parties', query: ['client legal name', 'principal office', 'signatory'], fields: ['client.name', 'client.address', 'client.signatory'] },
@@ -128,7 +128,8 @@ async function runFill(turn: Turn) {
 
   for (const pass of passes) {
     turn.activity(`Extracting ${pass.label}`)
-    await turn.tool('search_documents', `Searched for ${pass.query.map((q) => `“${q}”`).join(', ')}`, { queries: pass.query, k: 8 }, { hits: pass.query.length * 4 + 1 }, 420)
+    const docs = [...new Set(pass.fields.flatMap((id) => foundFields[id]?.sources.map((src) => src.docId) ?? []))]
+    await turn.tool('search_documents', `Searched for ${pass.query.map((q) => `“${q}”`).join(', ')}`, { queries: pass.query, k: 8, documents: docs }, { hits: pass.query.length * 4 + 1, documents: docs }, 420)
     for (const id of pass.fields) {
       turn.fill({ op: 'set', fieldId: id, field: structuredClone(foundFields[id]) })
       await turn.wait(170)
@@ -140,7 +141,7 @@ async function runFill(turn: Turn) {
   }
 
   turn.activity('Checking conflicts')
-  await turn.tool('search_documents', 'Searched for “effective”, “commence”, “billing”', { queries: ['effective', 'commence', 'billing'], k: 8 }, { hits: 7 }, 500)
+  await turn.tool('search_documents', 'Searched for “effective”, “commence”, “billing”', { queries: ['effective', 'commence', 'billing'], k: 8, documents: ['D2', 'D7', 'D3'] }, { hits: 7, documents: ['D2', 'D7', 'D3'] }, 500)
   turn.fill({ op: 'set', fieldId: 'effectiveDate', field: structuredClone(effectiveDateConflict) })
   await turn.tool('flag_conflict', 'Flagged a conflict on Effective date', { fieldId: 'effectiveDate', candidates: 2 }, { queued: true }, 250)
   turn.fill({ op: 'set', fieldId: 'billing.email', field: structuredClone(billingMissing) })

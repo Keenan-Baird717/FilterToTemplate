@@ -1,6 +1,6 @@
 import { useChat } from '@ai-sdk/react'
 import { Check, Download, FileText, ListChecks, Pencil, RotateCcw } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import { toast } from 'sonner'
 import { fieldDefs, sections, template, type FieldDef, type SectionDef } from '../../../agent-core/demo-data'
 import type { FieldState } from '../../../shared/protocol'
@@ -17,14 +17,34 @@ import { cn } from '@/lib/utils'
 import { PreviewPane } from './PreviewPane'
 import { CitationChip, StatusChip, statusMeta } from './status'
 
-export function FillPane() {
+/**
+ * Lets a layout customize field rows without forking them: the conflict note,
+ * extra content under a value (e.g. answer controls), and row selection.
+ */
+export interface FieldRowOptions {
+  conflictNote?: ReactNode
+  renderExtra?: (fieldId: string, field: FieldState | undefined) => ReactNode
+  selectedId?: string | null
+  onSelect?: (fieldId: string) => void
+}
+export const FieldRowContext = createContext<FieldRowOptions>({})
+
+export interface FillPaneProps {
+  /** Rendered under the progress strip, outside the scroll area (e.g. a pinned Needs-you tray). */
+  belowProgress?: ReactNode
+  /** Rendered at the top of the scrolling field list. */
+  aboveSections?: ReactNode
+  className?: string
+}
+
+export function FillPane({ belowProgress, aboveSections, className }: FillPaneProps = {}) {
   const view = useApp((s) => s.view)
   const setView = useApp((s) => s.setView)
   const { status } = useChat({ chat })
   const busy = status === 'submitted' || status === 'streaming'
 
   return (
-    <section className="flex h-full min-h-0 flex-col bg-panel" aria-label="Template">
+    <section className={cn('flex h-full min-h-0 flex-col bg-panel', className)} aria-label="Template">
       <header className="flex flex-wrap items-center gap-x-4 gap-y-3 border-b border-rule px-5 pt-4 pb-3 sm:px-6">
         <div className="flex min-w-56 flex-1 items-baseline gap-2.5">
           <h1 className="truncate text-[19px] leading-tight font-semibold tracking-[-0.01em]">{template.name}</h1>
@@ -60,11 +80,13 @@ export function FillPane() {
       </header>
 
       <ProgressStrip />
+      {belowProgress}
 
       <div className="min-h-0 flex-1">
         {view === 'fields' ? (
           <ScrollArea className="h-full">
             <div className="@container mx-auto flex max-w-[880px] flex-col gap-6 px-5 pt-5 pb-16 sm:px-6">
+              {aboveSections}
               {sections.map((section) => (
                 <SectionBlock key={section.id} section={section} />
               ))}
@@ -78,7 +100,7 @@ export function FillPane() {
   )
 }
 
-function ProgressStrip() {
+export function ProgressStrip() {
   const fields = useApp((s) => s.fields)
   const rates = useApp((s) => s.rates)
   const activity = useApp((s) => s.activity)
@@ -124,7 +146,7 @@ function ProgressStrip() {
   )
 }
 
-function SectionBlock({ section }: { section: SectionDef }) {
+export function SectionBlock({ section }: { section: SectionDef }) {
   const fields = useApp((s) => s.fields)
   const rates = useApp((s) => s.rates)
   const approveSection = useApp((s) => s.approveSection)
@@ -171,7 +193,7 @@ function SectionBlock({ section }: { section: SectionDef }) {
   )
 }
 
-function useWash(key: string) {
+export function useWash(key: string) {
   const stamp = useApp((s) => s.flash[key])
   const [wash, setWash] = useState(false)
   useEffect(() => {
@@ -185,7 +207,8 @@ function useWash(key: string) {
 
 const editable = new Set(['text', 'email', 'money', 'date'])
 
-function FieldRow({ def, field }: { def: FieldDef; field: FieldState | undefined }) {
+export function FieldRow({ def, field }: { def: FieldDef; field: FieldState | undefined }) {
+  const options = useContext(FieldRowContext)
   const wash = useWash(def.id)
   const status = field?.status ?? 'empty'
   const value = displayValue(field)
@@ -206,6 +229,8 @@ function FieldRow({ def, field }: { def: FieldDef; field: FieldState | undefined
   return (
     <div
       id={`field-${def.id}`}
+      data-selected={options.selectedId === def.id || undefined}
+      onClick={options.onSelect ? () => options.onSelect?.(def.id) : undefined}
       className={cn(
         'grid grid-cols-1 gap-x-5 gap-y-2 px-4 py-3.5 @lg:grid-cols-[168px_minmax(0,1fr)_auto] @lg:items-start',
         wash && 'field-wash'
@@ -232,7 +257,7 @@ function FieldRow({ def, field }: { def: FieldDef; field: FieldState | undefined
                 ))}
               </div>
             ))}
-            <p className="text-[12px] text-warn">Two documents disagree. Answer in the chat to choose one.</p>
+            <p className="text-[12px] text-warn">{options.conflictNote ?? 'Two documents disagree. Answer in the chat to choose one.'}</p>
           </div>
         ) : editing ? (
           <Input
@@ -297,6 +322,7 @@ function FieldRow({ def, field }: { def: FieldDef; field: FieldState | undefined
           </div>
         )}
         {field?.note && status !== 'empty' && <p className="text-[12px] text-ink-3">{field.note}</p>}
+        {options.renderExtra?.(def.id, field)}
       </div>
 
       <div className="flex @lg:justify-end">
@@ -316,7 +342,7 @@ function dedupeDocs(sources: FieldState['sources']) {
   })
 }
 
-function RatesRow() {
+export function RatesRow() {
   const rates = useApp((s) => s.rates)
   const wash = useWash('hourlyRates')
   return (
@@ -349,7 +375,7 @@ function RatesRow() {
                     {r.source && (
                       <button
                         type="button"
-                        className="font-mono text-[11px] text-cobalt hover:underline"
+                        className="font-mono text-[11px] text-cobalt-ink hover:underline"
                         onClick={() => useApp.getState().openSource({ docId: r.source!.docId, locator: r.source!.locator, quote: r.source!.quote })}
                       >
                         {r.source.locator}

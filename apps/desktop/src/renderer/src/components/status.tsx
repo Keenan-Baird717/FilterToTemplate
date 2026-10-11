@@ -16,10 +16,10 @@ import { useApp } from '@/lib/store'
 export const statusMeta: Record<FieldStatus, { label: string; icon: LucideIcon; tone: string; bar: string }> = {
   verified: { label: 'Verified', icon: CircleCheck, tone: 'text-ok bg-ok-soft', bar: 'bg-ok' },
   approved: { label: 'Approved', icon: BadgeCheck, tone: 'text-on-cobalt bg-ok', bar: 'bg-ok' },
-  user_answered: { label: 'From you', icon: UserRoundCheck, tone: 'text-cobalt bg-cobalt-soft', bar: 'bg-cobalt' },
+  user_answered: { label: 'From you', icon: UserRoundCheck, tone: 'text-cobalt-ink bg-cobalt-soft', bar: 'bg-cobalt' },
   conflict: { label: 'Conflict', icon: GitCompareArrows, tone: 'text-warn bg-warn-soft', bar: 'bg-warn' },
   missing: { label: 'Missing', icon: CircleDashed, tone: 'text-bad bg-bad-soft', bar: 'bg-bad' },
-  drafting: { label: 'Writing', icon: PenLine, tone: 'text-cobalt bg-cobalt-soft', bar: 'bg-cobalt/50' },
+  drafting: { label: 'Writing', icon: PenLine, tone: 'text-cobalt-ink bg-cobalt-soft', bar: 'bg-cobalt/50' },
   empty: { label: 'Waiting', icon: Clock3, tone: 'text-ink-3 bg-panel-2', bar: 'bg-rule' }
 }
 
@@ -45,7 +45,7 @@ export const docById = (id: string) => documents.find((d) => d.id === id)
 
 const kindStyle = {
   pdf: 'text-bad border-bad/30',
-  docx: 'text-cobalt border-cobalt/30',
+  docx: 'text-cobalt-ink border-cobalt/30',
   xlsx: 'text-ok border-ok/30',
   eml: 'text-warn border-warn/30'
 } as const
@@ -83,7 +83,7 @@ export function CitationChip({ source, className }: { source: SourceRef; classNa
         className
       )}
     >
-      <span className="font-mono text-[11px] font-medium text-cobalt">{source.docId}</span>
+      <span className="font-mono text-[11px] font-medium text-cobalt-ink">{source.docId}</span>
       <span className="truncate">{name}</span>
       <span className="font-mono text-[11px] text-ink-3 group-hover/cite:text-ink-2">{locatorText(source)}</span>
     </button>

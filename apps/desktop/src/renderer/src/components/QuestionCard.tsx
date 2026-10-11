@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { skipQuestion, submitAnswers } from '@/lib/agent'
+import { skipQuestion, submitAnswers, useOpenQuestion } from '@/lib/agent'
 import { useApp } from '@/lib/store'
 import { CitationChip } from './status'
 
@@ -19,6 +19,15 @@ export function QuestionCard({ question, disabled }: { question: QuestionSet; di
   const answered = useApp((s) => s.answered[question.id])
   const [values, setValues] = useState<Record<string, string>>({})
   const [touched, setTouched] = useState(false)
+  const open = useOpenQuestion()
+
+  if (!answered && open?.id !== question.id && !disabled) {
+    return (
+      <div className="flex items-center gap-2 rounded-lg border border-rule bg-panel-2/50 px-3 py-2 text-[12px] text-ink-3">
+        These questions no longer need an answer.
+      </div>
+    )
+  }
 
   if (answered) {
     return (
@@ -50,7 +59,7 @@ export function QuestionCard({ question, disabled }: { question: QuestionSet; di
       }}
     >
       <div className="flex items-center gap-2 border-b border-cobalt/20 bg-cobalt-soft px-3.5 py-2.5">
-        <CircleHelp className="size-4 text-cobalt" />
+        <CircleHelp className="size-4 text-cobalt-ink" />
         <div className="min-w-0">
           <div className="text-[13px] font-semibold text-ink">{question.title}</div>
           <div className="text-[11px] text-ink-2">{question.reason}</div>
