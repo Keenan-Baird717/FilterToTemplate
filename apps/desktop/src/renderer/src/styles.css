@@ -39,6 +39,10 @@
   --paper-ink: #1d1f24;
   --paper-rule: #d9dbe0;
   --shadow-page: 0 1px 2px rgb(16 24 40 / 0.06), 0 8px 28px rgb(16 24 40 / 0.1);
+  /* The page is always paper-white, so its marks stay the same in both themes. */
+  --paper-mark: #2743c4;
+  --paper-warn-bg: #fbefd9;
+  --paper-warn-ink: #8a4f00;
 
   --font-ui: 'Instrument Sans Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-data: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
@@ -215,6 +219,41 @@
     text-transform: uppercase;
     color: var(--ink-3);
   }
+}
+
+/* docx-preview output: keep its page geometry, swap its grey desk for ours. */
+.ftt-docx .docx-wrapper {
+  background: transparent;
+  padding: 28px 16px 56px;
+}
+.ftt-docx .docx-wrapper > section.docx {
+  box-shadow: var(--shadow-page);
+  margin-bottom: 28px;
+}
+.ftt-docx .ftt-val {
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background-color 0.15s;
+}
+.ftt-docx[data-highlight='true'] .ftt-val {
+  background: color-mix(in srgb, var(--paper-mark) 8%, transparent);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--paper-mark) 45%, transparent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+.ftt-docx .ftt-val:hover {
+  background: color-mix(in srgb, var(--paper-mark) 16%, transparent);
+}
+.ftt-docx .ftt-missing {
+  cursor: pointer;
+  border-radius: 3px;
+  padding: 0 3px;
+  background: var(--paper-warn-bg);
+  color: var(--paper-warn-ink);
+  font-family: var(--font-ui);
+  font-size: 0.85em;
+  font-weight: 600;
 }
 
 /* A field that just changed gets a short wash so the eye can follow the agent. */

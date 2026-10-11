@@ -35,16 +35,6 @@ export function CommandMenu() {
     fn()
   }
 
-  const jumpTo = (fieldId: string) => {
-    const s = useApp.getState()
-    s.setView('fields')
-    s.setPane('template')
-    requestAnimationFrame(() => {
-      document.getElementById(`field-${fieldId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-      useApp.setState((st) => ({ flash: { ...st.flash, [fieldId]: Date.now() } }))
-    })
-  }
-
   return (
     <CommandDialog open={open} onOpenChange={setOpen} title="Jump to" description="Search fields, documents and actions">
       <CommandInput placeholder="Search fields, documents and actions" />
@@ -52,7 +42,7 @@ export function CommandMenu() {
         <CommandEmpty>Nothing matches. Try a field name like “retainer”.</CommandEmpty>
         <CommandGroup heading="Fields">
           {Object.values(fieldDefs).map((f) => (
-            <CommandItem key={f.id} value={`field ${f.label} ${f.id}`} onSelect={() => run(() => jumpTo(f.id))}>
+            <CommandItem key={f.id} value={`field ${f.label} ${f.id}`} onSelect={() => run(() => useApp.getState().focusField(f.id))}>
               <TextCursorInput className="text-ink-3" />
               <span>{f.label}</span>
               <span className="ml-auto font-mono text-[11px] text-ink-3">{f.id}</span>

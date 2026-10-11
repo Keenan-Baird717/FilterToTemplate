@@ -22,6 +22,10 @@ export default defineConfig({
     resolve: {
       alias: { '@': resolve(__dirname, 'src/renderer/src') }
     },
-    plugins: [react(), tailwindcss()]
+    plugins: [react(), tailwindcss()],
+    build: {
+      // Ship the template layout inside the bundle; the renderer decodes it.
+      assetsInlineLimit: (file: string) => (file.endsWith('.docx') ? true : undefined)
+    }
   }
 })

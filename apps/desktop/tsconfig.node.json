@@ -11,7 +11,8 @@
     "isolatedModules": true,
     "verbatimModuleSyntax": true,
     "erasableSyntaxOnly": true,
-    "noEmit": true
+    "noEmit": true,
+    "allowImportingTsExtensions": true
   },
-  "include": ["electron.vite.config.ts", "vite.web.config.ts", "playwright.config.ts", "e2e/**/*", "src/main/**/*", "src/preload/**/*", "src/shared/**/*", "src/agent-core/**/*"]
+  "include": ["electron.vite.config.ts", "vite.web.config.ts", "playwright.config.ts", "e2e/**/*", "src/main/**/*", "src/preload/**/*", "src/shared/**/*", "src/agent-core/**/*", "src/doc-engine/**/*", "scripts/**/*"]
 }

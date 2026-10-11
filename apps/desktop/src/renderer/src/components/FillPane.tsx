@@ -11,6 +11,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { chat, runFill } from '@/lib/chat'
+import { exportDocx } from '@/lib/docx'
 import { DONE, displayValue, summarize, useApp } from '@/lib/store'
 import { cn } from '@/lib/utils'
 import { PreviewPane } from './PreviewPane'
@@ -51,7 +52,7 @@ export function FillPane() {
           <Button
             size="sm"
             className="h-8 gap-1.5"
-            onClick={() => toast('Export isn’t connected in this preview', { description: 'The full build renders layout.docx with docxtemplater and saves the file.' })}
+            onClick={() => exportDocx().catch((e) => toast.error('Export failed', { description: String(e) }))}
           >
             <Download className="size-3.5" /> Export .docx
           </Button>
@@ -319,7 +320,10 @@ function RatesRow() {
   const rates = useApp((s) => s.rates)
   const wash = useWash('hourlyRates')
   return (
-    <div className={cn('grid grid-cols-1 gap-x-5 gap-y-2 px-4 py-3.5 @lg:grid-cols-[168px_minmax(0,1fr)_auto] @lg:items-start', wash && 'field-wash')}>
+    <div
+      id="field-hourlyRates"
+      className={cn('grid grid-cols-1 gap-x-5 gap-y-2 px-4 py-3.5 @lg:grid-cols-[168px_minmax(0,1fr)_auto] @lg:items-start', wash && 'field-wash')}
+    >
       <div className="min-w-0">
         <div className="text-[13px] font-medium text-ink">Hourly rates</div>
         <code className="mt-0.5 block truncate font-mono text-[11px] text-ink-3" title="Table-row loop in layout.docx">

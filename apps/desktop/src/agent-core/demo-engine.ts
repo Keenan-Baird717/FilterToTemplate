@@ -216,7 +216,7 @@ async function freeform(turn: Turn, text: string) {
     )
   } else if (/export|docx|pdf|word/.test(q)) {
     await turn.text(
-      'Export renders the Word layout with docxtemplater, using the values in the fill state. PDF goes through LibreOffice. Neither is connected in this preview.'
+      'Export fills **layout.docx** with docxtemplater from the values in the fill state, so the file you save is the same document the Preview tab shows. PDF output would go through LibreOffice, which this preview doesn’t include.'
     )
   } else {
     await turn.text(

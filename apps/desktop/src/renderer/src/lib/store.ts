@@ -37,6 +37,7 @@ interface AppState {
   setTheme: (theme: Theme) => void
   setHighlight: (on: boolean) => void
   setCommandOpen: (open: boolean) => void
+  focusField: (fieldId: string) => void
   addFiles: (files: { name: string }[]) => string[]
   advanceParsing: () => string[]
 }
@@ -152,6 +153,13 @@ export const useApp = create<AppState>((set, get) => ({
   },
   setHighlight: (highlight) => set({ highlight }),
   setCommandOpen: (commandOpen) => set({ commandOpen }),
+  focusField: (fieldId) => {
+    set({ view: 'fields', pane: 'template' })
+    requestAnimationFrame(() => {
+      document.getElementById(`field-${fieldId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      set((st) => ({ flash: { ...st.flash, [fieldId]: Date.now() } }))
+    })
+  },
 
   addFiles: (files) => {
     const start = get().docs.length

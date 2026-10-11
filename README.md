@@ -21,7 +21,9 @@ Other scripts, run inside `apps/desktop`:
 
 ```sh
 pnpm typecheck
-pnpm build && pnpm test:e2e   # Playwright drives the built Electron app
+pnpm template:check           # layout.docx tags match the field definitions; a full render leaves nothing unfilled
+pnpm template:build           # regenerate the sample layout.docx
+pnpm build && pnpm test:e2e   # Playwright drives the built Electron app, including a real .docx export
 ```
 
 On Linux CI or containers, wrap the e2e run in `xvfb-run`. Set `SCREENSHOT_DIR` to save screenshots of each step.
@@ -36,6 +38,7 @@ On Linux CI or containers, wrap the e2e run in `xvfb-run`. Set `SCREENSHOT_DIR` 
 | Chat | AI SDK v7 `useChat` with a custom transport over the agent port, AI Elements (Conversation, Message, Tool, Shimmer), Streamdown |
 | Agent contract | `src/shared/protocol.ts`: fill-state types, follow-up question sets, and a zod-validated worker protocol |
 | Agent | `src/agent-core/demo-engine.ts`: a scripted stand-in that emits the same UI message chunks a Copilot SDK session adapter would |
+| Word output | `templates/engagement-letter/layout.docx` filled by docxtemplater (`src/doc-engine/render.ts`), previewed with docx-preview, exported as a real `.docx` |
 
 The example project is an engagement letter for a fictional client, filled from eight invented documents. You can:
 
@@ -43,17 +46,28 @@ The example project is an engagement letter for a fictional client, filled from 
 - answer the agent's follow-up form and watch it write the scope summary;
 - edit a field inline, which locks it against agent overwrites;
 - approve sections;
-- switch to the letter preview;
+- switch to the Word preview, where filled values are underlined, missing ones show as placeholders, and clicking a value jumps to its field;
+- export the filled `.docx`;
 - drop files to watch simulated ingest;
 - re-run the whole fill from scratch.
 
-| Source viewer | Agent writing | Letter preview |
+| Source viewer | Agent writing | Word preview |
 |---|---|---|
 | ![](docs/screenshots/source-viewer.png) | ![](docs/screenshots/agent-writing.png) | ![](docs/screenshots/preview.png) |
+
+## Word templates
+
+Each template is a Word file the team authors and brands in Word, plus the field definitions the agent fills. Tags such as `{client.name}`, the loop pair `{#hourlyRates}…{/hourlyRates}` across a table row, and `{#scopeParagraphs}{text}{/scopeParagraphs}` for AI-written paragraphs mark where values go.
+
+The same render produces the preview and the export. The preview render wraps each value in invisible markers, and the app turns those into clickable highlights after docx-preview draws the page. The exported file never contains them. docx-preview doesn't paginate like Word, so page breaks in the preview are approximate. For exact pages, the full build would add a PDF view rendered by LibreOffice.
+
+| Gaps before answers | Filled |
+|---|---|
+| ![](docs/screenshots/preview-gaps.png) | ![](docs/screenshots/preview.png) |
 
 ## Not built yet
 
 - **Copilot SDK.** Replace `demo-engine.ts` with a `CopilotClient` session in `agent-worker.ts`, using `mode: "empty"`, the custom tools, and `ask_user` elicitation. The transport and UI stay as they are.
 - **Document parsing.** unpdf, mammoth, SheetJS and tesseract.js in ingest workers, with SQLite FTS5 under `userData`.
-- **Template rendering.** docxtemplater against a real `layout.docx` plus `schema.json`, with export to `.docx` and PDF.
+- **Template authoring.** Import a team-written `layout.docx`, generate starter field definitions from its tags, and keep them in `schema.json`. Add PDF export through LibreOffice.
 - **Packaging.** electron-builder, signing, notarization and auto-update.

@@ -1,35 +1,40 @@
-import { Highlighter } from 'lucide-react'
-import type { ReactNode } from 'react'
-import { fieldDefs, project } from '../../../agent-core/demo-data'
-import { ScrollArea } from '@/components/ui/scroll-area'
+import { renderAsync } from 'docx-preview'
+import { FileText, Highlighter, LoaderCircle } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { MARK, markerFields } from '../../../doc-engine/render'
 import { Switch } from '@/components/ui/switch'
-import { displayValue, useApp } from '@/lib/store'
-import { cn } from '@/lib/utils'
+import { registerDocumentFonts, renderPreviewDocx } from '@/lib/docx'
+import { useApp } from '@/lib/store'
 
-// Stand-in for the docx-preview render of the filled layout.docx. Values come
-// straight from the fill state, so edits and answers show up immediately.
+// Renders the real filled layout.docx (docxtemplater) with docx-preview. The
+// preview variant carries invisible markers around each value; after render
+// they become spans the user can click to jump to the field.
 
-function V({ id, children }: { id: string; children?: ReactNode }) {
-  const field = useApp((s) => s.fields[id])
-  const highlight = useApp((s) => s.highlight)
-  const text = children ?? displayValue(field)
-  if (!text) {
-    return (
-      <span className="rounded-[3px] bg-warn-soft px-1 font-sans text-[0.8em] font-medium text-warn not-italic">
-        {fieldDefs[id]?.label ?? id}
-      </span>
-    )
+const PAGE_PX = 816 // US Letter width at 96 dpi
+const markerRe = new RegExp(`([${MARK.start}${MARK.missing}])(\\d+)${MARK.sep}([^${MARK.end}]*)${MARK.end}`, 'g')
+
+function decorate(root: HTMLElement) {
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT)
+  const hits: Text[] = []
+  for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+    const t = n as Text
+    if (t.data.includes(MARK.start) || t.data.includes(MARK.missing)) hits.push(t)
   }
-  return (
-    <span
-      className={cn(
-        'transition-colors',
-        highlight && 'rounded-[2px] bg-cobalt/[0.07] underline decoration-cobalt/45 decoration-1 underline-offset-[3px]'
-      )}
-    >
-      {text}
-    </span>
-  )
+  for (const node of hits) {
+    const frag = document.createDocumentFragment()
+    let last = 0
+    for (const m of node.data.matchAll(markerRe)) {
+      if (m.index > last) frag.append(node.data.slice(last, m.index))
+      const span = document.createElement('span')
+      span.className = m[1] === MARK.missing ? 'ftt-missing' : 'ftt-val'
+      span.dataset.field = markerFields[Number(m[2])] ?? ''
+      span.textContent = m[3]
+      frag.append(span)
+      last = m.index + m[0].length
+    }
+    if (last < node.data.length) frag.append(node.data.slice(last))
+    node.replaceWith(frag)
+  }
 }
 
 export function PreviewPane() {
@@ -37,133 +42,83 @@ export function PreviewPane() {
   const rates = useApp((s) => s.rates)
   const highlight = useApp((s) => s.highlight)
   const setHighlight = useApp((s) => s.setHighlight)
-  const signatory = displayValue(fields['client.signatory'])
-  const salutation = signatory ? signatory.split(',')[0] : null
-  const scope = displayValue(fields['scopeSummary'])
+  const focusField = useApp((s) => s.focusField)
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const hostRef = useRef<HTMLDivElement>(null)
+  const [state, setState] = useState<'rendering' | 'ready' | 'error'>('rendering')
+  const [zoom, setZoom] = useState(1)
+
+  // Re-render the document whenever the fill state changes (debounced while
+  // the agent is streaming values in).
+  useEffect(() => {
+    registerDocumentFonts()
+    let cancelled = false
+    const t = setTimeout(async () => {
+      try {
+        const bytes = await renderPreviewDocx()
+        const staging = document.createElement('div')
+        await renderAsync(bytes, staging, staging, {
+          className: 'docx',
+          inWrapper: true,
+          breakPages: true,
+          ignoreLastRenderedPageBreak: true,
+          renderHeaders: true,
+          renderFooters: true,
+          useBase64URL: true
+        })
+        if (cancelled || !hostRef.current) return
+        decorate(staging)
+        hostRef.current.replaceChildren(...staging.childNodes)
+        setState('ready')
+      } catch (error) {
+        console.error('[preview]', error)
+        if (!cancelled) setState('error')
+      }
+    }, 180)
+    return () => {
+      cancelled = true
+      clearTimeout(t)
+    }
+  }, [fields, rates])
+
+  // Scale pages down to fit narrow panes.
+  useEffect(() => {
+    const el = scrollRef.current
+    if (!el) return
+    const ro = new ResizeObserver(([entry]) => setZoom(Math.min(1, (entry.contentRect.width - 32) / PAGE_PX)))
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-ground">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-rule bg-panel px-5 py-2 text-[12px] text-ink-3 sm:px-6">
-        <span>Fast preview of layout.docx. Page breaks are approximate.</span>
+        <span className="flex min-w-0 items-center gap-1.5">
+          <FileText className="size-3.5 shrink-0" />
+          <span>Filled layout.docx · page breaks approximate</span>
+          {state === 'rendering' && <LoaderCircle className="size-3.5 shrink-0 animate-spin" aria-label="Rendering" />}
+        </span>
         <label className="flex cursor-pointer items-center gap-2 text-ink-2" htmlFor="highlight-fields">
           <Highlighter className="size-3.5" /> Highlight filled values
           <Switch id="highlight-fields" checked={highlight} onCheckedChange={setHighlight} />
         </label>
       </div>
-      <ScrollArea className="min-h-0 flex-1">
-        <div className="px-3 py-6 sm:px-8 sm:py-10">
-          <article
-            className="mx-auto w-full max-w-[720px] bg-paper px-6 py-10 font-serif text-[15px] leading-[1.6] text-paper-ink sm:px-[72px] sm:py-[64px]"
-            style={{ boxShadow: 'var(--shadow-page)' }}
-            aria-label="Letter preview"
-          >
-            <header className="mb-10 flex flex-col gap-1 border-b border-paper-rule pb-5">
-              <div className="text-[13px] font-semibold tracking-[0.22em]">CALDER &amp; REYES LLP</div>
-              <div className="font-sans text-[11px] tracking-wide text-paper-ink/60">
-                1 Embarcadero Center, Suite 2400 · San Francisco, CA 94111
-              </div>
-            </header>
-
-            <p className="mb-6">11 October 2026</p>
-
-            <p className="mb-6">
-              <V id="client.signatory" />
-              <br />
-              <V id="client.name" />
-              <br />
-              <V id="client.address" />
-            </p>
-
-            <p className="mb-6 font-semibold">
-              Re: Engagement letter · <V id="matter.description" />
-            </p>
-
-            <p className="mb-4">Dear {salutation ? <V id="client.signatory">{salutation}</V> : <V id="client.signatory" />},</p>
-
-            <p className="mb-4">
-              Thank you for selecting {project.firm}. This letter confirms the terms on which we will represent <V id="client.name" /> in connection with
-              the matter above, effective <V id="effectiveDate" />.
-            </p>
-
-            <h3 className="mt-7 mb-2 text-[15px] font-semibold">1. Scope of engagement</h3>
-            {scope ? (
-              scope.split('\n\n').map((p, i) => (
-                <p key={i} className="mb-3">
-                  <V id="scopeSummary">{p}</V>
-                </p>
-              ))
-            ) : (
-              <p className="mb-3">
-                <V id="scopeSummary" />
-              </p>
-            )}
-            <p className="mb-3">
-              <span className="mr-2 text-[17px] leading-none" aria-hidden>
-                {fields['includesLitigation']?.value ? '☒' : '☐'}
-              </span>
-              Litigation support included
-            </p>
-
-            <h3 className="mt-7 mb-2 text-[15px] font-semibold">2. Fees and billing</h3>
-            <p className="mb-3">
-              We will bill on an <V id="fee.basis">{String(displayValue(fields['fee.basis']) ?? '').toLowerCase() || undefined}</V> basis at the rates
-              below. Total fees will not exceed <V id="fee.cap" /> without your written approval.
-            </p>
-            <table className="mb-4 w-full max-w-[380px] border-collapse font-sans text-[13px]">
-              <thead>
-                <tr className="border-b border-paper-rule text-left">
-                  <th className="py-1.5 font-semibold">Role</th>
-                  <th className="py-1.5 text-right font-semibold">Hourly rate</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rates.rows.length ? (
-                  rates.rows.map((r) => (
-                    <tr key={r.key} className="border-b border-paper-rule/70">
-                      <td className="py-1.5">{r.role}</td>
-                      <td className="num py-1.5 text-right">
-                        <span className={cn(highlight && 'underline decoration-cobalt/45 underline-offset-[3px]')}>${r.rate}</span>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={2} className="py-1.5">
-                      <span className="rounded-[3px] bg-warn-soft px-1 text-[0.85em] font-medium text-warn">Hourly rates</span>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-            <p className="mb-3">
-              You agree to pay a retainer of <V id="retainer" />, applied to our final invoice. Invoices are payable <V id="paymentTerms" /> and will be sent
-              to <V id="billing.email" />.
-            </p>
-
-            <h3 className="mt-7 mb-2 text-[15px] font-semibold">3. Governing law</h3>
-            <p className="mb-10">
-              This letter is governed by the laws of the State of <V id="governingLaw" />.
-            </p>
-
-            <div className="grid grid-cols-1 gap-8 font-sans text-[13px] sm:grid-cols-2">
-              <div>
-                <div className="mb-8 font-semibold tracking-wide">CALDER &amp; REYES LLP</div>
-                <div className="border-t border-paper-ink/40 pt-1.5">
-                  <V id="firm.signatory" />
-                </div>
-              </div>
-              <div>
-                <div className="mb-8 font-semibold tracking-wide">
-                  ACKNOWLEDGED: <V id="client.name" />
-                </div>
-                <div className="border-t border-paper-ink/40 pt-1.5">
-                  <V id="client.signatory" />
-                </div>
-              </div>
-            </div>
-          </article>
-        </div>
-      </ScrollArea>
+      <div ref={scrollRef} className="min-h-0 flex-1 overflow-auto">
+        {state === 'error' && (
+          <p className="p-6 text-[13px] text-bad">The layout couldn’t be rendered. Check the template with pnpm template:check.</p>
+        )}
+        <div
+          ref={hostRef}
+          className="ftt-docx"
+          data-highlight={highlight}
+          style={{ zoom }}
+          aria-label="Letter preview"
+          onClick={(e) => {
+            const id = (e.target as HTMLElement).closest<HTMLElement>('[data-field]')?.dataset.field
+            if (id) focusField(id)
+          }}
+        />
+      </div>
     </div>
   )
 }

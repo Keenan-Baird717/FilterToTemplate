@@ -1,5 +1,6 @@
-import { join } from 'node:path'
-import { app, BrowserWindow, ipcMain, MessageChannelMain, nativeTheme, shell, utilityProcess, type UtilityProcess } from 'electron'
+import { writeFile } from 'node:fs/promises'
+import { basename, join } from 'node:path'
+import { app, BrowserWindow, dialog, ipcMain, MessageChannelMain, nativeTheme, shell, utilityProcess, type UtilityProcess } from 'electron'
 
 // Main stays thin: windows, theme and the MessagePort broker. The agent runs in
 // its own utility process so tool work never blocks window management.
@@ -77,6 +78,23 @@ function createWindow() {
 
 ipcMain.on('theme:set', (_event, theme: unknown) => {
   if (theme === 'light' || theme === 'dark' || theme === 'system') nativeTheme.themeSource = theme
+})
+
+// Export: the renderer produces the .docx bytes; main owns the file system.
+// FTT_EXPORT_DIR skips the dialog (used by the e2e test).
+ipcMain.handle('file:save-docx', async (event, name: unknown, bytes: unknown) => {
+  if (typeof name !== 'string' || !name.endsWith('.docx') || !(bytes instanceof Uint8Array)) throw new Error('Invalid export request')
+  const fileName = basename(name)
+  let target = process.env['FTT_EXPORT_DIR'] ? join(process.env['FTT_EXPORT_DIR'], fileName) : undefined
+  if (!target) {
+    const win = BrowserWindow.fromWebContents(event.sender)
+    const options = { defaultPath: join(app.getPath('documents'), fileName), filters: [{ name: 'Word document', extensions: ['docx'] }] }
+    const result = win ? await dialog.showSaveDialog(win, options) : await dialog.showSaveDialog(options)
+    if (result.canceled || !result.filePath) return { canceled: true }
+    target = result.filePath
+  }
+  await writeFile(target, bytes)
+  return { saved: target }
 })
 
 app.whenReady().then(() => {
