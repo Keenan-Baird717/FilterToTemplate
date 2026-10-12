@@ -1,0 +1,89 @@
+/* Evidence keeps the Workbench palette. These are only the motion cues for
+   the live sources rail and the question tray, and the row affordances for
+   selecting a field, built from palette tokens so they follow light and dark
+   automatically. */
+
+@keyframes te-cite-flash {
+  0% {
+    background-color: color-mix(in srgb, var(--ok) 18%, transparent);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+@keyframes te-reading {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--cobalt) 30%, transparent),
+      0 0 0 0 color-mix(in srgb, var(--cobalt) 0%, transparent);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--cobalt) 60%, transparent),
+      0 0 0 4px color-mix(in srgb, var(--cobalt) 14%, transparent);
+  }
+}
+
+@keyframes te-count-pop {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.35);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes te-question-glow {
+  0% {
+    background-color: var(--cobalt-soft);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+:root[data-variant='tray-evidence'] .te-cite-flash {
+  animation: te-cite-flash 1.8s ease-out forwards;
+}
+
+:root[data-variant='tray-evidence'] .te-reading {
+  animation: te-reading 1.3s ease-in-out infinite;
+}
+
+:root[data-variant='tray-evidence'] .te-count-pop {
+  animation: te-count-pop 0.5s ease-out;
+}
+
+:root[data-variant='tray-evidence'] .te-question-glow {
+  animation: te-question-glow 1.6s ease-out forwards;
+}
+
+/* Every row opens its evidence: make that feel clickable, and give keyboard
+   focus (↑/↓ through the list) an inset ring that fits inside the card. */
+:root[data-variant='tray-evidence'] [data-te-fill] [id^='field-'] {
+  cursor: pointer;
+  transition: background-color 0.18s ease-out;
+}
+:root[data-variant='tray-evidence'] [data-te-fill] [id^='field-']:hover {
+  background-color: color-mix(in srgb, var(--panel-2) 80%, transparent);
+}
+:root[data-variant='tray-evidence'] [data-te-fill] [id^='field-']:first-child {
+  border-top-left-radius: 7px;
+  border-top-right-radius: 7px;
+}
+:root[data-variant='tray-evidence'] [data-te-fill] [id^='field-']:last-child {
+  border-bottom-left-radius: 7px;
+  border-bottom-right-radius: 7px;
+}
+:root[data-variant='tray-evidence'] [data-te-fill] [id^='field-']:focus {
+  outline: none;
+}
+:root[data-variant='tray-evidence'] [data-te-fill] [id^='field-'][data-te-kbd]:focus-visible {
+  outline: 2px solid var(--cobalt);
+  outline-offset: -2px;
+}
