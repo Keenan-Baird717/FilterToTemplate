@@ -22,7 +22,7 @@ const onlyVariant = (): Plugin => {
     resolveId(source, importer) {
       if (!only || !importer?.replace(/\\/g, '/').endsWith('variants/registry.ts')) return null
       const m = source.match(/^\.\/([\w-]+)$/)
-      if (!m || m[1] === only || m[1] === 'workbench' || m[1] === 'skipped') return null
+      if (!m || m[1] === only || m[1] === 'workbench' || m[1] === 'tray-trail' || m[1] === 'skipped') return null
       return resolve(__dirname, 'src/renderer/src/variants/skipped.tsx')
     }
   }

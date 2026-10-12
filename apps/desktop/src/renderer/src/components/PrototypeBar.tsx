@@ -55,7 +55,7 @@ export function PrototypeBar() {
         <div className="flex items-center gap-0.5 rounded-lg bg-panel-2 p-0.5">
           {primaryVariants.map((v, i) => (
             <span key={v.id} className="contents">
-              {i > 0 && primaryVariants[i - 1].round !== 3 && v.round === 3 && (
+              {i > 0 && primaryVariants[i - 1].tag && !v.tag && (
                 <span className="mx-1 flex shrink-0 items-center gap-1.5 pl-1 text-[10px] font-medium tracking-wide text-ink-3 uppercase" aria-hidden>
                   <span className="h-4 w-px bg-rule" />
                   From V2

@@ -3,20 +3,26 @@
 A desktop app that fills team-designed templates from many uploaded documents. A GitHub Copilot SDK agent extracts each field with a cited source, asks the user follow-up questions for anything missing or conflicting, and renders the finished document.
 
 - **Research:** [`reports/Copilot SDK template filler stack.md`](reports/Copilot%20SDK%20template%20filler%20stack.md) covers the recommended stack, template design, risks and a phased build plan. The source notes are in [`research_notes/`](research_notes/).
-- **Prototype:** [`apps/desktop`](apps/desktop) is a runnable UI on that stack. The agent is simulated, so it runs without a Copilot sign-in.
+- **Tech stack:** [`docs/tech-stack.md`](docs/tech-stack.md) is the short version: every layer, what the prototype already uses, how the chosen design maps onto storage, and what to build next.
+- **Prototype:** [`apps/desktop`](apps/desktop) is a runnable UI on that stack. The agent is simulated, so it runs without a Copilot sign-in. It opens on Trail, the chosen design.
 
-![Fields view: sources on the left, cited fill state in the middle, agent with a follow-up form on the right](docs/screenshots/fields.png)
+![Trail: the history of a value open over the filled field list, with the agent on the right](docs/screenshots/trail-history.png)
 
 ## Direction
 
 - **Base: Workbench** (`variants/workbench`). Sources, fields and agent side by side. This is the design the round-two prototypes build on.
 - **V2: Tray** (`variants/tray`). Workbench with the follow-up questions moved out of the chat into a tray pinned above the fields, and a sources panel that folds into a rail and wakes up when the agent reads or cites a document.
+- **V3: Trail** (`variants/tray-trail`), the chosen design and what the app opens on. Tray where the agent's work stays visible: the rail opens onto a timeline of what the agent and you did, every value has a history with undo, and values that changed while you were away are marked "New".
 
 The other prototypes stay in the app for reference.
 
+| Questions in the tray | History of a value | Activity trail |
+|---|---|---|
+| ![](docs/screenshots/trail-tray.png) | ![](docs/screenshots/trail-history.png) | ![](docs/screenshots/trail-activity.png) |
+
 ## Prototypes
 
-The app ships several layout prototypes over the same agent, fill state and Word render. Switch between them with the bar at the top, `Alt+1`…`Alt+7` (Base, V2 and the round-three prototypes), the command menu (`Ctrl/⌘ K`), or a URL hash such as `#tray`. The reset button puts the example back to its opening state.
+The app ships several layout prototypes over the same agent, fill state and Word render. Switch between them with the bar at the top, `Alt+1`…`Alt+7` (Base, V2, V3 and the other round-three prototypes), the command menu (`Ctrl/⌘ K`), or a URL hash such as `#tray`. The reset button puts the example back to its opening state.
 
 | # | Prototype | Idea |
 |---|---|---|
@@ -35,9 +41,9 @@ The app ships several layout prototypes over the same agent, fill state and Word
 | 12 | Split | V2 with the live Word letter beside the fields and the agent as a drawer |
 | 13 | Review | V2 whose tray carries you through questions, then review, then export |
 | 14 | Focus | V2 with finished sections folded away and a floating agent composer |
-| 15 | Trail | V2 with an activity trail in the rail and a history on every value |
+| 15 | Trail (V3) | V2 with an activity trail in the rail and a history on every value; the chosen design |
 
-Round 2 (6–10) refines Workbench: follow-up questions move out of the chat, and sources come alive only when they matter. Round 3 (11–15) spins off from Tray (V2): each starts from the whole Tray prototype and pushes one idea further. The switcher shows Base, V2 and the round-three prototypes up front; earlier rounds are in its Earlier menu. Each prototype lives in `apps/desktop/src/renderer/src/variants/<id>/`.
+Round 2 (6–10) refines Workbench: follow-up questions move out of the chat, and sources come alive only when they matter. Round 3 (11–15) spins off from Tray (V2): each starts from the whole Tray prototype and pushes one idea further. The switcher shows Base, V2, V3 and the other round-three prototypes up front; earlier rounds are in its Earlier menu. Each prototype lives in `apps/desktop/src/renderer/src/variants/<id>/`.
 
 ## Run the prototype
 
@@ -55,7 +61,7 @@ Other scripts, run inside `apps/desktop`:
 pnpm typecheck
 pnpm template:check           # layout.docx tags match the field definitions; a full render leaves nothing unfilled
 pnpm template:build           # regenerate the sample layout.docx
-pnpm build && pnpm test:e2e   # Playwright drives the built Electron app, including a real .docx export
+pnpm build && pnpm test:e2e   # Playwright drives the built Electron app: Trail's tray, history and undo, then Workbench through a real .docx export
 ```
 
 On Linux CI or containers, wrap the e2e run in `xvfb-run`. Set `SCREENSHOT_DIR` to save screenshots of each step.
@@ -72,7 +78,7 @@ On Linux CI or containers, wrap the e2e run in `xvfb-run`. Set `SCREENSHOT_DIR` 
 | Agent | `src/agent-core/demo-engine.ts`: a scripted stand-in that emits the same UI message chunks a Copilot SDK session adapter would |
 | Word output | `templates/engagement-letter/layout.docx` filled by docxtemplater (`src/doc-engine/render.ts`), previewed with docx-preview, exported as a real `.docx` |
 
-The example project is an engagement letter for a fictional client, filled from eight invented documents. You can:
+The example project is an engagement letter for a fictional client, filled from eight invented documents. In Workbench, the base design, you can:
 
 - open any citation to see the quote highlighted on its source page;
 - answer the agent's follow-up form and watch it write the scope summary;
@@ -101,5 +107,6 @@ The same render produces the preview and the export. The preview render wraps ea
 
 - **Copilot SDK.** Replace `demo-engine.ts` with a `CopilotClient` session in `agent-worker.ts`, using `mode: "empty"`, the custom tools, and `ask_user` elicitation. The transport and UI stay as they are.
 - **Document parsing.** unpdf, mammoth, SheetJS and tesseract.js in ingest workers, with SQLite FTS5 under `userData`.
+- **Trail's history on disk.** The trail lives in the renderer for now. The full build stores each change in an append-only `activity` table in the project's SQLite file, so history and undo survive restarts and double as an audit log (see [`docs/tech-stack.md`](docs/tech-stack.md#trail-on-this-stack)).
 - **Template authoring.** Import a team-written `layout.docx`, generate starter field definitions from its tags, and keep them in `schema.json`. Add PDF export through LibreOffice.
 - **Packaging.** electron-builder, signing, notarization and auto-update.

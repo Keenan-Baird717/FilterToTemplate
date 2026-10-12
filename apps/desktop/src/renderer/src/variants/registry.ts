@@ -1,7 +1,7 @@
 import { lazy, type ComponentType, type LazyExoticComponent } from 'react'
 
 // Each prototype is a full layout over the same fill state, agent and Word
-// render. Select one with the bar at the top, Alt+1…6, or a URL hash (#canvas).
+// render. Select one with the bar at the top, Alt+1…7, or a URL hash (#canvas).
 
 export interface VariantDef {
   id: string
@@ -9,12 +9,12 @@ export interface VariantDef {
   thesis: string
   /** 1: first exploration. 2: Workbench refinements (questions out of the chat, livelier sources). 3: spin-offs of Tray (V2). */
   round: 1 | 2 | 3
-  /** Chosen direction: Workbench is the base design, Tray is V2. */
-  tag?: 'Base' | 'V2'
+  /** Chosen direction: Workbench is the base design, Tray is V2, Trail is V3 (the pick, and what the app opens on). */
+  tag?: 'Base' | 'V2' | 'V3'
   Component: LazyExoticComponent<ComponentType>
 }
 
-// VITE_ONLY_VARIANT=<id> builds just that prototype (plus Workbench); the
+// VITE_ONLY_VARIANT=<id> builds just that prototype (plus Workbench and Trail); the
 // constant comparisons fold away at build time so other folders aren't bundled.
 const ONLY = import.meta.env.VITE_ONLY_VARIANT as string | undefined
 const skipped = () => import('./skipped')
@@ -35,16 +35,18 @@ export const variants: VariantDef[] = [
   { id: 'tray-split', round: 3, name: 'Split', thesis: 'V2 with the live Word letter beside the fields and the agent tucked into a drawer', Component: lazy(ONLY && ONLY !== 'tray-split' ? skipped : () => import('./tray-split')) },
   { id: 'tray-review', round: 3, name: 'Review', thesis: "V2's tray carries you through the whole job: questions, then review, then export", Component: lazy(ONLY && ONLY !== 'tray-review' ? skipped : () => import('./tray-review')) },
   { id: 'tray-focus', round: 3, name: 'Focus', thesis: 'V2, calmer: finished sections fold away and the agent becomes a floating composer', Component: lazy(ONLY && ONLY !== 'tray-focus' ? skipped : () => import('./tray-focus')) },
-  { id: 'tray-trail', round: 3, name: 'Trail', thesis: 'V2 with a visible trail of what the agent did and a history on every value', Component: lazy(ONLY && ONLY !== 'tray-trail' ? skipped : () => import('./tray-trail')) }
+  { id: 'tray-trail', round: 3, tag: 'V3', name: 'Trail', thesis: 'V2 with a visible trail of what the agent did and a history on every value', Component: lazy(() => import('./tray-trail')) }
 ]
 
-export const defaultVariant = variants[0]
+/** The app opens on Trail (V3), the chosen design. */
+export const defaultVariant = variants.find((v) => v.tag === 'V3') ?? variants[0]
 
-/** Always visible in the switcher: the chosen Base and V2, then the spin-offs from V2. Alt+1… follows this order. */
+/** Always visible in the switcher: Base, V2 and V3, then the other spin-offs from V2. Alt+1… follows this order. */
 export const primaryVariants = [
   ...variants.filter((v) => v.tag === 'Base'),
   ...variants.filter((v) => v.tag === 'V2'),
-  ...variants.filter((v) => v.round === 3)
+  ...variants.filter((v) => v.tag === 'V3'),
+  ...variants.filter((v) => v.round === 3 && !v.tag)
 ]
 /** Earlier explorations, kept for reference in the switcher's menu. */
 export const earlierVariants = variants.filter((v) => !primaryVariants.includes(v))
