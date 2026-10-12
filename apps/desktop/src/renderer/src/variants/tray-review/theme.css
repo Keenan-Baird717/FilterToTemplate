@@ -1,0 +1,90 @@
+/* Review keeps the Workbench palette. These are only the motion cues for the
+   live sources rail, the question tray and approvals, built from palette
+   tokens so they follow light and dark automatically. */
+
+@keyframes rv-approve-wash {
+  from {
+    background-color: color-mix(in srgb, var(--ok) 14%, transparent);
+  }
+  to {
+    background-color: transparent;
+  }
+}
+
+:root[data-variant='tray-review'] .rv-approve-wash {
+  animation: rv-approve-wash 1.4s ease-out;
+}
+
+@keyframes rv-cite-flash {
+  0% {
+    background-color: color-mix(in srgb, var(--ok) 18%, transparent);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+@keyframes rv-reading {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--cobalt) 30%, transparent),
+      0 0 0 0 color-mix(in srgb, var(--cobalt) 0%, transparent);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--cobalt) 60%, transparent),
+      0 0 0 4px color-mix(in srgb, var(--cobalt) 14%, transparent);
+  }
+}
+
+@keyframes rv-count-pop {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.35);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes rv-question-glow {
+  0% {
+    background-color: var(--cobalt-soft);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+:root[data-variant='tray-review'] .rv-cite-flash {
+  animation: rv-cite-flash 1.8s ease-out forwards;
+}
+
+:root[data-variant='tray-review'] .rv-reading {
+  animation: rv-reading 1.3s ease-in-out infinite;
+}
+
+:root[data-variant='tray-review'] .rv-count-pop {
+  animation: rv-count-pop 0.5s ease-out;
+}
+
+:root[data-variant='tray-review'] .rv-question-glow {
+  animation: rv-question-glow 1.6s ease-out forwards;
+}
+
+/* The evidence page is always paper-white, so its quote marker stays light in
+   dark mode too (the shared marker token turns dark olive there). */
+@media (prefers-color-scheme: dark) {
+  :root[data-variant='tray-review']:not([data-theme='light']) .rv-paper {
+    --marker: color-mix(in srgb, var(--paper-warn-ink) 30%, var(--paper));
+    --marker-ink: var(--paper-ink);
+  }
+}
+
+:root[data-variant='tray-review'][data-theme='dark'] .rv-paper {
+  --marker: color-mix(in srgb, var(--paper-warn-ink) 30%, var(--paper));
+  --marker-ink: var(--paper-ink);
+}
