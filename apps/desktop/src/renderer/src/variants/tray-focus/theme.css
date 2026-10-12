@@ -1,0 +1,63 @@
+/* Focus keeps the Workbench palette. These are only the motion cues for the
+   live sources rail and the question tray (copied from Tray, renamed so they
+   don't collide), built from palette tokens so they follow light and dark. */
+
+@keyframes focus-cite-flash {
+  0% {
+    background-color: color-mix(in srgb, var(--ok) 18%, transparent);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+@keyframes focus-reading {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--cobalt) 30%, transparent),
+      0 0 0 0 color-mix(in srgb, var(--cobalt) 0%, transparent);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--cobalt) 60%, transparent),
+      0 0 0 4px color-mix(in srgb, var(--cobalt) 14%, transparent);
+  }
+}
+
+@keyframes focus-count-pop {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.35);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes focus-question-glow {
+  0% {
+    background-color: var(--cobalt-soft);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+:root[data-variant='tray-focus'] .focus-cite-flash {
+  animation: focus-cite-flash 1.8s ease-out forwards;
+}
+
+:root[data-variant='tray-focus'] .focus-reading {
+  animation: focus-reading 1.3s ease-in-out infinite;
+}
+
+:root[data-variant='tray-focus'] .focus-count-pop {
+  animation: focus-count-pop 0.5s ease-out;
+}
+
+:root[data-variant='tray-focus'] .focus-question-glow {
+  animation: focus-question-glow 1.6s ease-out forwards;
+}
