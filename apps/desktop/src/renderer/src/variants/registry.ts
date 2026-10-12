@@ -7,8 +7,8 @@ export interface VariantDef {
   id: string
   name: string
   thesis: string
-  /** 1: first exploration. 2: Workbench refinements (questions out of the chat, livelier sources). */
-  round: 1 | 2
+  /** 1: first exploration. 2: Workbench refinements (questions out of the chat, livelier sources). 3: spin-offs of Tray (V2). */
+  round: 1 | 2 | 3
   /** Chosen direction: Workbench is the base design, Tray is V2. */
   tag?: 'Base' | 'V2'
   Component: LazyExoticComponent<ComponentType>
@@ -30,7 +30,12 @@ export const variants: VariantDef[] = [
   { id: 'inplace', round: 2, name: 'In place', thesis: 'Answer questions inside the field rows; the left pane shows evidence for what you are looking at', Component: lazy(ONLY && ONLY !== 'inplace' ? skipped : () => import('./inplace')) },
   { id: 'sidekick', round: 2, name: 'Sidekick', thesis: 'One side panel with Needs you, Agent and Sources tabs; the fields get the room', Component: lazy(ONLY && ONLY !== 'sidekick' ? skipped : () => import('./sidekick')) },
   { id: 'dock', round: 2, name: 'Dock', thesis: 'Sources become a dock along the bottom; questions arrive as one focused card', Component: lazy(ONLY && ONLY !== 'dock' ? skipped : () => import('./dock')) },
-  { id: 'phases', round: 2, name: 'Phases', thesis: 'The left column changes with the job: reading, then questions, then review', Component: lazy(ONLY && ONLY !== 'phases' ? skipped : () => import('./phases')) }
+  { id: 'phases', round: 2, name: 'Phases', thesis: 'The left column changes with the job: reading, then questions, then review', Component: lazy(ONLY && ONLY !== 'phases' ? skipped : () => import('./phases')) },
+  { id: 'tray-evidence', round: 3, name: 'Evidence', thesis: 'V2 with a left column that opens into evidence for the field you select, then folds back into the live rail', Component: lazy(ONLY && ONLY !== 'tray-evidence' ? skipped : () => import('./tray-evidence')) },
+  { id: 'tray-split', round: 3, name: 'Split', thesis: 'V2 with the live Word letter beside the fields and the agent tucked into a drawer', Component: lazy(ONLY && ONLY !== 'tray-split' ? skipped : () => import('./tray-split')) },
+  { id: 'tray-review', round: 3, name: 'Review', thesis: "V2's tray carries you through the whole job: questions, then review, then export", Component: lazy(ONLY && ONLY !== 'tray-review' ? skipped : () => import('./tray-review')) },
+  { id: 'tray-focus', round: 3, name: 'Focus', thesis: 'V2, calmer: finished sections fold away and the agent becomes a floating composer', Component: lazy(ONLY && ONLY !== 'tray-focus' ? skipped : () => import('./tray-focus')) },
+  { id: 'tray-trail', round: 3, name: 'Trail', thesis: 'V2 with a visible trail of what the agent did and a history on every value', Component: lazy(ONLY && ONLY !== 'tray-trail' ? skipped : () => import('./tray-trail')) }
 ]
 
 export const defaultVariant = variants[0]

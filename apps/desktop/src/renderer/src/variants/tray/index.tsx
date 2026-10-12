@@ -96,16 +96,14 @@ export default function Tray() {
             onFocus={(e) => setHoverDoc(citedDocAt(e.target))}
             onBlur={() => setHoverDoc(null)}
           >
-            {/* The tray already says what needs the user; drop the duplicate label in the progress strip. */}
-            {asking && <style>{`[data-tray-fill] [role='progressbar'] + div > span:has(> .bg-warn){display:none}`}</style>}
-            {phase === 'applying' && <style>{`[data-tray-fill] [role='progressbar'] + div > p{display:none}`}</style>}
             {clickable && (
               <style>{`${clickable}{cursor:pointer;transition:background-color .2s}${pending
                 .map((i) => `#field-${CSS.escape(i.fieldId)}:hover`)
                 .join(',')}{background-color:color-mix(in srgb,var(--warn-soft) 45%,transparent)}`}</style>
             )}
             <FieldRowContext.Provider value={rowOptions}>
-              <FillPane belowProgress={<NeedsYouTray />} />
+              {/* The tray already says what needs the user, so the strip stays quiet meanwhile. */}
+              <FillPane belowProgress={<NeedsYouTray />} stripStatus={asking || phase === 'applying' ? null : undefined} />
             </FieldRowContext.Provider>
           </div>
 

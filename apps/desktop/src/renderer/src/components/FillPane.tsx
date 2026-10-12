@@ -25,7 +25,8 @@ export interface FieldRowOptions {
   conflictNote?: ReactNode | ((fieldId: string) => ReactNode)
   renderExtra?: (fieldId: string, field: FieldState | undefined) => ReactNode
   selectedId?: string | null
-  onSelect?: (fieldId: string) => void
+  /** Row click. The event lets a layout ignore clicks on chips and buttons inside the row. */
+  onSelect?: (fieldId: string, event: React.MouseEvent) => void
 }
 export const FieldRowContext = createContext<FieldRowOptions>({})
 
@@ -34,10 +35,12 @@ export interface FillPaneProps {
   belowProgress?: ReactNode
   /** Rendered at the top of the scrolling field list. */
   aboveSections?: ReactNode
+  /** Replaces the status text at the right of the progress strip ("2 need you", activity). null hides it. */
+  stripStatus?: ReactNode | null
   className?: string
 }
 
-export function FillPane({ belowProgress, aboveSections, className }: FillPaneProps = {}) {
+export function FillPane({ belowProgress, aboveSections, stripStatus, className }: FillPaneProps = {}) {
   const view = useApp((s) => s.view)
   const setView = useApp((s) => s.setView)
   const { status } = useChat({ chat })
@@ -79,7 +82,7 @@ export function FillPane({ belowProgress, aboveSections, className }: FillPanePr
         </div>
       </header>
 
-      <ProgressStrip />
+      <ProgressStrip status={stripStatus} />
       {belowProgress}
 
       <div className="min-h-0 flex-1">
@@ -100,7 +103,7 @@ export function FillPane({ belowProgress, aboveSections, className }: FillPanePr
   )
 }
 
-export function ProgressStrip() {
+export function ProgressStrip({ status }: { status?: ReactNode | null } = {}) {
   const fields = useApp((s) => s.fields)
   const rates = useApp((s) => s.rates)
   const activity = useApp((s) => s.activity)
@@ -129,7 +132,9 @@ export function ProgressStrip() {
         )}
       </div>
       <div className="flex min-h-6 items-center gap-3 text-[12px] text-ink-2">
-        {activity ? (
+        {status !== undefined ? (
+          status
+        ) : activity ? (
           <Shimmer className="text-[12px] font-medium" duration={1.6}>{`${activity}…`}</Shimmer>
         ) : attention ? (
           <span className="flex items-center gap-1.5">
@@ -230,7 +235,7 @@ export function FieldRow({ def, field }: { def: FieldDef; field: FieldState | un
     <div
       id={`field-${def.id}`}
       data-selected={options.selectedId === def.id || undefined}
-      onClick={options.onSelect ? () => options.onSelect?.(def.id) : undefined}
+      onClick={options.onSelect ? (e) => options.onSelect?.(def.id, e) : undefined}
       className={cn(
         'grid grid-cols-1 gap-x-5 gap-y-2 px-4 py-3.5 @lg:grid-cols-[168px_minmax(0,1fr)_auto] @lg:items-start data-[selected]:bg-cobalt-soft/40',
         wash && 'field-wash'

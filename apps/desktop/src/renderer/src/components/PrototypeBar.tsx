@@ -49,7 +49,7 @@ export function PrototypeBar() {
             {i > 0 && variants[i - 1].round !== v.round && (
               <span className="mx-1 flex shrink-0 items-center gap-1.5 pl-1 text-[10px] font-medium tracking-wide text-ink-3 uppercase" aria-hidden>
                 <span className="h-4 w-px bg-rule" />
-                Round {v.round}
+                {v.round === 3 ? 'From V2' : `Round ${v.round}`}
               </span>
             )}
             <Tooltip>
