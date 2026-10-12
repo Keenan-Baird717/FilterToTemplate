@@ -1,0 +1,14 @@
+{
+  "name": "filtertotemplate",
+  "private": true,
+  "packageManager": "pnpm@10.28.0",
+  "engines": {
+    "node": ">=24.12.0"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @filtertotemplate/desktop dev",
+    "build": "pnpm --filter @filtertotemplate/desktop build",
+    "build:web": "pnpm --filter @filtertotemplate/desktop build:web",
+    "typecheck": "pnpm --filter @filtertotemplate/desktop typecheck"
+  }
+}

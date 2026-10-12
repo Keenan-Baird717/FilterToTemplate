@@ -1,0 +1,156 @@
+/* Split keeps the Workbench palette. These are the motion cues for the live
+   sources rail, the question tray, the agent handle and the live letter, built
+   from palette tokens so they follow light and dark automatically. The page
+   itself is always paper-white, so letter marks use the --paper-* tokens. */
+
+@keyframes split-cite-flash {
+  0% {
+    background-color: color-mix(in srgb, var(--ok) 18%, transparent);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+@keyframes split-reading {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--cobalt) 30%, transparent),
+      0 0 0 0 color-mix(in srgb, var(--cobalt) 0%, transparent);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--cobalt) 60%, transparent),
+      0 0 0 4px color-mix(in srgb, var(--cobalt) 14%, transparent);
+  }
+}
+
+@keyframes split-count-pop {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.35);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes split-question-glow {
+  0% {
+    background-color: var(--cobalt-soft);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+:root[data-variant='tray-split'] .split-cite-flash {
+  animation: split-cite-flash 1.8s ease-out forwards;
+}
+
+:root[data-variant='tray-split'] .split-reading {
+  animation: split-reading 1.3s ease-in-out infinite;
+}
+
+:root[data-variant='tray-split'] .split-count-pop {
+  animation: split-count-pop 0.5s ease-out;
+}
+
+:root[data-variant='tray-split'] .split-question-glow {
+  animation: split-question-glow 1.6s ease-out forwards;
+}
+
+/* The agent handle while the agent works: a short bar travels down its edge. */
+@keyframes split-working {
+  0% {
+    transform: translateY(-110%);
+  }
+  100% {
+    transform: translateY(420%);
+  }
+}
+
+:root[data-variant='tray-split'] .split-working-bar {
+  animation: split-working 1.7s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+/* Field rows: the whole row selects (and finds the value in the letter). */
+:root[data-variant='tray-split'] [data-split-fill] [id^='field-'] {
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+:root[data-variant='tray-split'] [data-split-fill] [id^='field-']:first-child {
+  border-top-left-radius: 7px;
+  border-top-right-radius: 7px;
+}
+:root[data-variant='tray-split'] [data-split-fill] [id^='field-']:last-child {
+  border-bottom-left-radius: 7px;
+  border-bottom-right-radius: 7px;
+}
+:root[data-variant='tray-split'] [data-split-fill] [id^='field-']:hover {
+  background-color: color-mix(in srgb, var(--panel-2) 80%, transparent);
+}
+:root[data-variant='tray-split'] [data-split-fill] [id^='field-'][data-split-selected] {
+  background-color: color-mix(in srgb, var(--cobalt-soft) 60%, transparent);
+}
+:root[data-variant='tray-split'] [data-split-fill] [id^='field-']:focus-visible {
+  outline-offset: -2px;
+}
+
+/* The letter: a value the agent just changed gets a short wash. */
+@keyframes split-doc-wash {
+  0%,
+  25% {
+    background-color: color-mix(in srgb, var(--paper-mark) 26%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--paper-mark) 18%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 3px transparent;
+  }
+}
+:root[data-variant='tray-split'] .ftt-docx .split-doc-wash {
+  animation: split-doc-wash 1.6s ease-out;
+}
+
+/* What the agent is writing right now ends in a caret. */
+:root[data-variant='tray-split'] .ftt-docx .split-doc-caret::after {
+  content: '';
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin-left: 2px;
+  vertical-align: -0.15em;
+  background: var(--paper-mark);
+  animation: caret 1s steps(1) infinite;
+}
+
+/* An answer picked in the tray but not sent yet, previewed in place. */
+:root[data-variant='tray-split'] .ftt-docx .split-doc-draft {
+  padding: 0;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--paper-mark) 7%, transparent);
+  color: var(--paper-ink);
+  font: inherit;
+  text-decoration: underline dashed color-mix(in srgb, var(--paper-mark) 75%, transparent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  white-space: nowrap;
+}
+:root[data-variant='tray-split'] .ftt-docx .split-doc-draft::after {
+  content: 'Not sent';
+  display: inline-block;
+  margin-left: 5px;
+  padding: 0 4px;
+  border-radius: 3px;
+  background: var(--paper-warn-bg);
+  color: var(--paper-warn-ink);
+  font-family: var(--font-ui);
+  font-size: 0.68em;
+  font-weight: 600;
+  line-height: 1.5;
+  vertical-align: 0.12em;
+  text-decoration: none;
+}

@@ -1,0 +1,90 @@
+/* Dock: Workbench's palette, plus a float shadow for the focus card, a lift
+   shadow for the rising filmstrip, and the reading glow / cited flash. */
+
+:root[data-variant='dock'] {
+  --dock-float: 0 0 0 1px rgb(16 24 40 / 0.02), 0 2px 6px rgb(16 24 40 / 0.05), 0 18px 44px -12px rgb(16 24 40 / 0.22);
+  --dock-lift: 0 -14px 32px -18px rgb(16 24 40 / 0.22);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-variant='dock']:not([data-theme='light']) {
+    --dock-float: 0 0 0 1px rgb(0 0 0 / 0.3), 0 2px 6px rgb(0 0 0 / 0.3), 0 22px 48px -12px rgb(0 0 0 / 0.6);
+    --dock-lift: 0 -16px 36px -18px rgb(0 0 0 / 0.65);
+  }
+}
+
+:root[data-variant='dock'][data-theme='dark'] {
+  --dock-float: 0 0 0 1px rgb(0 0 0 / 0.3), 0 2px 6px rgb(0 0 0 / 0.3), 0 22px 48px -12px rgb(0 0 0 / 0.6);
+  --dock-lift: 0 -16px 36px -18px rgb(0 0 0 / 0.65);
+}
+
+/* A document the agent is reading breathes a soft cobalt glow. */
+@keyframes dock-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--cobalt) 0%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--cobalt) 18%, transparent), 0 0 18px 0 color-mix(in srgb, var(--cobalt) 22%, transparent);
+  }
+}
+:root[data-variant='dock'] .dock-reading {
+  animation: dock-glow 1.6s ease-in-out infinite;
+}
+
+/* A document a value was just cited from gets a marker-coloured flash. */
+@keyframes dock-flash {
+  from {
+    opacity: 0.32;
+  }
+  to {
+    opacity: 0;
+  }
+}
+:root[data-variant='dock'] .dock-flash {
+  background: var(--marker);
+  opacity: 0;
+  animation: dock-flash 1.8s ease-out;
+}
+
+/* Chip strip scrolls sideways without a visible bar; edges fade. */
+:root[data-variant='dock'] .dock-chips {
+  scrollbar-width: none;
+  mask-image: linear-gradient(90deg, transparent 0, black 8px, black calc(100% - 16px), transparent 100%);
+}
+:root[data-variant='dock'] .dock-chips::-webkit-scrollbar {
+  display: none;
+}
+:root[data-variant='dock'] .dock-strip {
+  scrollbar-width: thin;
+  scrollbar-color: var(--rule) transparent;
+}
+
+/* Thumbnail text fades out at the bottom instead of being cut. */
+:root[data-variant='dock'] .dock-clip {
+  mask-image: linear-gradient(180deg, black 62%, transparent 100%);
+}
+
+/* The row the focus card is asking about. */
+:root[data-variant='dock'] .dock-fields [data-selected] {
+  background-color: color-mix(in srgb, var(--cobalt-soft) 70%, transparent);
+}
+
+/* On a wide Fields pane the open card gets its own room next to the list.
+   The viewport is positioned so the rows' visually hidden labels stay inside
+   the scroller (otherwise they overflow the page and scrolling a row into
+   view nudges the whole layout). */
+:root[data-variant='dock'] .dock-fields [data-slot='scroll-area-viewport'] {
+  position: relative;
+  transition: padding-right 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+:root[data-variant='dock'] .dock-room [data-slot='scroll-area-viewport'] {
+  padding-right: 388px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-variant='dock'] .dock-reading {
+    animation: none;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--cobalt) 18%, transparent);
+  }
+}

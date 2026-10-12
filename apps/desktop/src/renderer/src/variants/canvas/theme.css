@@ -1,0 +1,266 @@
+/* Canvas: paper on a cool stone desk. Chrome is quiet; the page carries the
+   colour. Pine green is the one accent; status keeps its own ok/warn/bad hues. */
+
+:root[data-variant='canvas'] {
+  --ground: #e3e6e5;
+  --panel: #fafbfb;
+  --panel-2: #eef1f0;
+  --ink: #15201b;
+  --ink-2: #4a5651;
+  --ink-3: #7c8883;
+  --rule: #d1d8d5;
+  --cobalt: #18514a;
+  --cobalt-soft: #dae9e6;
+  --on-cobalt: #ffffff;
+  --marker: #fbe38b;
+  --marker-ink: #3a3000;
+  --ok: #3b7d22;
+  --ok-soft: #e4f0da;
+  --warn: #965600;
+  --warn-soft: #f7e9d0;
+  --bad: #b13a2f;
+  --bad-soft: #f7e1de;
+  --radius: 0.625rem;
+  --font-ui: 'Geist Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-data: 'Geist Mono Variable', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  --shadow-page: 0 0 0 1px rgb(21 32 27 / 0.04), 0 2px 6px rgb(21 32 27 / 0.05), 0 22px 50px -14px rgb(21 32 27 / 0.24);
+
+  /* Canvas-only: floating chrome, and marks drawn on the always-white page
+     (fixed in both themes, like the shared --paper-* tokens). */
+  --cv-float: 0 0 0 1px rgb(21 32 27 / 0.05), 0 2px 4px rgb(21 32 27 / 0.05), 0 14px 36px -8px rgb(21 32 27 / 0.24);
+  --cv-page-accent: #18514a;
+  --cv-page-accent-wash: rgb(24 81 74 / 0.1);
+  --cv-page-warn-bg: #fbeed3;
+  --cv-page-warn-ink: #7a4500;
+  --cv-page-bad-bg: #fde7e3;
+  --cv-page-bad-ink: #9a2a20;
+  --cv-page-wait-bg: #eef1f0;
+  --cv-page-wait-ink: #66716c;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-variant='canvas']:not([data-theme='light']) {
+    --ground: #111514;
+    --panel: #1a1f1d;
+    --panel-2: #222826;
+    --ink: #e2e8e5;
+    --ink-2: #a1aca7;
+    --ink-3: #6f7a75;
+    --rule: #2c3431;
+    --cobalt: #7cc3b5;
+    --cobalt-soft: #17312e;
+    --on-cobalt: #091715;
+    --marker: #5c4c12;
+    --marker-ink: #fff2c4;
+    --ok: #a3d06d;
+    --ok-soft: #1b2a16;
+    --warn: #e9a64a;
+    --warn-soft: #2e2412;
+    --bad: #ee8074;
+    --bad-soft: #301917;
+    --shadow-page: 0 0 0 1px rgb(0 0 0 / 0.3), 0 2px 6px rgb(0 0 0 / 0.35), 0 26px 60px -14px rgb(0 0 0 / 0.7);
+    --cv-float: 0 0 0 1px rgb(0 0 0 / 0.35), 0 2px 4px rgb(0 0 0 / 0.3), 0 16px 40px -8px rgb(0 0 0 / 0.6);
+    color-scheme: dark;
+  }
+}
+
+:root[data-variant='canvas'][data-theme='dark'] {
+  --ground: #111514;
+  --panel: #1a1f1d;
+  --panel-2: #222826;
+  --ink: #e2e8e5;
+  --ink-2: #a1aca7;
+  --ink-3: #6f7a75;
+  --rule: #2c3431;
+  --cobalt: #7cc3b5;
+  --cobalt-soft: #17312e;
+  --on-cobalt: #091715;
+  --marker: #5c4c12;
+  --marker-ink: #fff2c4;
+  --ok: #a3d06d;
+  --ok-soft: #1b2a16;
+  --warn: #e9a64a;
+  --warn-soft: #2e2412;
+  --bad: #ee8074;
+  --bad-soft: #301917;
+  --shadow-page: 0 0 0 1px rgb(0 0 0 / 0.3), 0 2px 6px rgb(0 0 0 / 0.35), 0 26px 60px -14px rgb(0 0 0 / 0.7);
+  --cv-float: 0 0 0 1px rgb(0 0 0 / 0.35), 0 2px 4px rgb(0 0 0 / 0.3), 0 16px 40px -8px rgb(0 0 0 / 0.6);
+  color-scheme: dark;
+}
+
+/* ---------------------------------------------------------------------------
+   The page. Values are quiet dotted underlines; anything that needs the user
+   is a solid mark that breathes. Approved values lose their underline, so the
+   letter gets cleaner as it is reviewed.
+   ------------------------------------------------------------------------- */
+
+:root[data-variant='canvas'] .ftt-docx .docx-wrapper {
+  padding: 40px 24px 220px;
+}
+:root[data-variant='canvas'] .ftt-docx .docx-wrapper > section.docx {
+  margin-bottom: 40px;
+}
+:root[data-variant='canvas'] .ftt-docx[data-state='rendering'] {
+  opacity: 0;
+}
+:root[data-variant='canvas'] .ftt-docx {
+  transition: opacity 0.3s ease;
+}
+
+:root[data-variant='canvas'] .ftt-docx .ftt-val,
+:root[data-variant='canvas'] .ftt-docx .ftt-missing {
+  outline: none;
+  transition:
+    background-color 0.15s ease,
+    box-shadow 0.15s ease,
+    text-decoration-color 0.15s ease;
+}
+
+:root[data-variant='canvas'] .ftt-docx[data-highlight='true'] .ftt-val {
+  background: transparent;
+  text-decoration-line: underline;
+  text-decoration-style: dotted;
+  text-decoration-thickness: 1.5px;
+  text-decoration-color: color-mix(in srgb, var(--cv-page-accent) 55%, transparent);
+  text-underline-offset: 3px;
+}
+:root[data-variant='canvas'] .ftt-docx[data-highlight='true'] .ftt-val[data-cv-status='approved'] {
+  text-decoration-color: transparent;
+}
+:root[data-variant='canvas'] .ftt-docx[data-highlight='true'] .ftt-val[data-cv-status='user_answered'] {
+  text-decoration-style: solid;
+  text-decoration-thickness: 1px;
+}
+:root[data-variant='canvas'] .ftt-docx .ftt-val:hover,
+:root[data-variant='canvas'] .ftt-docx .ftt-val:focus-visible {
+  background: var(--cv-page-accent-wash);
+  text-decoration-color: var(--cv-page-accent);
+}
+:root[data-variant='canvas'] .ftt-docx .ftt-val:focus-visible,
+:root[data-variant='canvas'] .ftt-docx .ftt-missing:focus-visible {
+  box-shadow: 0 0 0 2px var(--cv-page-accent);
+}
+
+/* Missing, conflict and waiting values (DocxView renders them as .ftt-missing). */
+:root[data-variant='canvas'] .ftt-docx .ftt-missing {
+  padding: 0.5px 4px;
+  border-radius: 3px;
+  font-family: var(--font-ui);
+  font-size: 0.82em;
+  font-weight: 560;
+  letter-spacing: 0.005em;
+  white-space: nowrap;
+}
+:root[data-variant='canvas'] .ftt-docx .ftt-missing[data-cv-status='missing'] {
+  background: var(--cv-page-bad-bg);
+  color: var(--cv-page-bad-ink);
+  animation: cv-breathe-bad 2.8s ease-in-out infinite;
+}
+:root[data-variant='canvas'] .ftt-docx .ftt-missing[data-cv-status='conflict'] {
+  background: var(--cv-page-warn-bg);
+  color: var(--cv-page-warn-ink);
+  animation: cv-breathe-warn 2.8s ease-in-out infinite;
+}
+:root[data-variant='canvas'] .ftt-docx .ftt-missing[data-cv-hint]::after {
+  content: attr(data-cv-hint);
+  margin-left: 6px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 14%, transparent);
+  font-size: 0.86em;
+  font-weight: 600;
+}
+:root[data-variant='canvas'] .ftt-docx .ftt-missing[data-cv-status='empty'],
+:root[data-variant='canvas'] .ftt-docx .ftt-missing[data-cv-status='drafting'] {
+  background: var(--cv-page-wait-bg);
+  color: var(--cv-page-wait-ink);
+  font-weight: 500;
+  animation: none;
+}
+:root[data-variant='canvas'] .ftt-docx .ftt-missing[data-cv-status='empty']:hover {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cv-page-wait-ink) 35%, transparent);
+}
+
+/* An answer the user picked on the page but hasn't sent yet: written into the
+   letter in its own type, marked as pending. */
+:root[data-variant='canvas'] .ftt-docx .ftt-missing[data-cv-draft='true'] {
+  padding: 0 1px;
+  border-radius: 2px;
+  background: var(--cv-page-accent-wash);
+  color: var(--cv-page-accent);
+  font-family: inherit;
+  font-size: 1em;
+  font-weight: inherit;
+  letter-spacing: normal;
+  animation: none;
+  text-decoration-line: underline;
+  text-decoration-style: dashed;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+:root[data-variant='canvas'] .ftt-docx .ftt-missing[data-cv-draft='true']::after {
+  display: none;
+}
+
+/* The value whose card is open. */
+:root[data-variant='canvas'] .ftt-docx .cv-selected,
+:root[data-variant='canvas'] .ftt-docx .cv-selected:hover {
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  background: var(--cv-page-accent-wash);
+  box-shadow: 0 0 0 1.5px var(--cv-page-accent);
+  text-decoration-color: transparent;
+  animation: none;
+}
+:root[data-variant='canvas'] .ftt-docx .ftt-missing.cv-selected {
+  box-shadow: 0 0 0 1.5px currentColor;
+}
+
+/* A value the agent (or the user) just changed. */
+:root[data-variant='canvas'] .ftt-docx .cv-flash {
+  animation: cv-wash 1.8s ease-out;
+}
+
+@keyframes cv-wash {
+  0%,
+  20% {
+    background-color: rgb(24 81 74 / 0.24);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+@keyframes cv-breathe-bad {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgb(154 42 32 / 0);
+  }
+  50% {
+    box-shadow: 0 0 0 3px rgb(154 42 32 / 0.16);
+  }
+}
+@keyframes cv-breathe-warn {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgb(122 69 0 / 0);
+  }
+  50% {
+    box-shadow: 0 0 0 3px rgb(122 69 0 / 0.16);
+  }
+}
+
+/* Chrome helpers */
+@keyframes cv-ping {
+  0% {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+  80%,
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+[data-variant='canvas'] .cv-ping {
+  animation: cv-ping 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
+}

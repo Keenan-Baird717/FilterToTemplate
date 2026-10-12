@@ -1,0 +1,30 @@
+/* Sidekick keeps the Workbench palette. The only additions are motion bits
+   drawn with the existing tokens. */
+
+/* A short scanning bar next to "Reading" on documents the agent is reading. */
+:root[data-variant='sidekick'] .sk-reading-bar {
+  position: relative;
+  display: inline-block;
+  width: 18px;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--cobalt) 22%, transparent);
+}
+:root[data-variant='sidekick'] .sk-reading-bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  width: 45%;
+  border-radius: 2px;
+  background: var(--cobalt);
+  animation: sk-scan 1.1s ease-in-out infinite;
+}
+@keyframes sk-scan {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(230%);
+  }
+}

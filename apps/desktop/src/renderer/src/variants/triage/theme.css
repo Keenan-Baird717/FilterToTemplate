@@ -1,0 +1,124 @@
+/* Triage: crisp monochrome neutrals, hairline rules, one magenta signal.
+   Magenta marks the thing being proven: the selected item, the quoted
+   evidence and the matching value in the letter. Status keeps its own
+   semantic colors. */
+
+:root[data-variant='triage'] {
+  --ground: #f6f6f7;
+  --panel: #ffffff;
+  --panel-2: #f3f3f5;
+  --ink: #18181b;
+  --ink-2: #52525b;
+  --ink-3: #75757e;
+  --rule: #e6e6e9;
+  --cobalt: #c0189c;
+  --cobalt-soft: #fcecf8;
+  --on-cobalt: #ffffff;
+  --marker: #ffd6f2;
+  --marker-ink: #560845;
+  --ok: #17804c;
+  --ok-soft: #e4f4eb;
+  --warn: #a35a00;
+  --warn-soft: #fcf0dd;
+  --bad: #c4362c;
+  --bad-soft: #fce9e7;
+  --radius: 0.375rem;
+  --font-ui: 'Geist Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-data: 'Geist Mono Variable', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  --shadow-page: 0 0 0 1px rgb(24 24 27 / 0.07), 0 1px 2px rgb(24 24 27 / 0.05), 0 6px 20px rgb(24 24 27 / 0.06);
+  /* The letter page is always white, so its selection mark is fixed. */
+  --triage-paper-accent: #c0189c;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-variant='triage']:not([data-theme='light']) {
+    --ground: #0c0c0e;
+    --panel: #131315;
+    --panel-2: #1b1b1e;
+    --ink: #ececef;
+    --ink-2: #a3a3ac;
+    --ink-3: #7c7c86;
+    --rule: #26262a;
+    --cobalt: #f062d9;
+    --cobalt-soft: #33102e;
+    --on-cobalt: #1a0517;
+    --marker: #6e1d5f;
+    --marker-ink: #ffe3f7;
+    --ok: #4cc386;
+    --ok-soft: #11261a;
+    --warn: #f0a640;
+    --warn-soft: #2b2010;
+    --bad: #f27a70;
+    --bad-soft: #2e1614;
+    --shadow-page: 0 0 0 1px rgb(255 255 255 / 0.06), 0 8px 24px rgb(0 0 0 / 0.45);
+    --triage-paper-accent: #c0189c;
+    color-scheme: dark;
+  }
+}
+
+:root[data-variant='triage'][data-theme='dark'] {
+  --ground: #0c0c0e;
+  --panel: #131315;
+  --panel-2: #1b1b1e;
+  --ink: #ececef;
+  --ink-2: #a3a3ac;
+  --ink-3: #7c7c86;
+  --rule: #26262a;
+  --cobalt: #f062d9;
+  --cobalt-soft: #33102e;
+  --on-cobalt: #1a0517;
+  --marker: #6e1d5f;
+  --marker-ink: #ffe3f7;
+  --ok: #4cc386;
+  --ok-soft: #11261a;
+  --warn: #f0a640;
+  --warn-soft: #2b2010;
+  --bad: #f27a70;
+  --bad-soft: #2e1614;
+  --shadow-page: 0 0 0 1px rgb(255 255 255 / 0.06), 0 8px 24px rgb(0 0 0 / 0.45);
+  --triage-paper-accent: #c0189c;
+  color-scheme: dark;
+}
+
+/* Tighter letterforms for the dense UI. */
+:root[data-variant='triage'] body {
+  letter-spacing: -0.003em;
+}
+
+/* Letter column: only the selected value is marked, in the signal color. */
+:root[data-variant='triage'] .ftt-docx .ftt-val:hover {
+  background: color-mix(in srgb, var(--triage-paper-accent) 9%, transparent);
+}
+:root[data-variant='triage'] .ftt-docx .ftt-selected,
+:root[data-variant='triage'] .ftt-docx .ftt-selected:hover {
+  background: color-mix(in srgb, var(--triage-paper-accent) 14%, transparent);
+  box-shadow: 0 0 0 1.5px var(--triage-paper-accent);
+  border-radius: 2px;
+  text-decoration: none;
+}
+:root[data-variant='triage'] .ftt-docx .ftt-missing.ftt-selected {
+  background: var(--paper-warn-bg);
+}
+
+/* Thin, quiet scrollbars for the inbox and detail columns. */
+:root[data-variant='triage'] .triage-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--rule) transparent;
+}
+
+/* A value the agent is still writing ends in a signal-colored caret. */
+@keyframes triage-blink {
+  50% {
+    opacity: 0;
+  }
+}
+:root[data-variant='triage'] .triage-caret::after {
+  content: '';
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin-left: 2px;
+  vertical-align: -0.15em;
+  background: var(--cobalt);
+  animation: triage-blink 1s steps(1) infinite;
+}

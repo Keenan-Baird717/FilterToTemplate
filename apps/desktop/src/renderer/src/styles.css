@@ -1,0 +1,309 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@source '../../../node_modules/streamdown/dist/*.js';
+
+/* Dark variant follows the OS unless the user picked a theme (data-theme). */
+@custom-variant dark {
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not([data-theme='light']) *) {
+      @slot;
+    }
+  }
+  &:where([data-theme='dark'], [data-theme='dark'] *) {
+    @slot;
+  }
+}
+
+/* Layout: three working panes (sources | fill state | agent) on a cool paper
+   ground; the rendered letter is the only serif surface. */
+:root {
+  --ground: #eef0f3;
+  --panel: #ffffff;
+  --panel-2: #f5f6f8;
+  --ink: #161a22;
+  --ink-2: #4f5868;
+  --ink-3: #858d9c;
+  --rule: #e1e4ea;
+  --cobalt: #2743c4;
+  --cobalt-soft: #e8ecfb;
+  --on-cobalt: #ffffff;
+  /* Accent used as text or small marks; follows --cobalt unless a theme needs a darker ink. */
+  --cobalt-ink: var(--cobalt);
+  --marker: #ffe27a;
+  --marker-ink: #3d3200;
+  --ok: #17845a;
+  --ok-soft: #e2f3eb;
+  --warn: #a96300;
+  --warn-soft: #fbefd9;
+  --bad: #bf3a2f;
+  --bad-soft: #fbe6e4;
+  --paper: #fdfdfc;
+  --paper-ink: #1d1f24;
+  --paper-rule: #d9dbe0;
+  --shadow-page: 0 1px 2px rgb(16 24 40 / 0.06), 0 8px 28px rgb(16 24 40 / 0.1);
+  /* The page is always paper-white, so its marks stay the same in both themes. */
+  --paper-mark: #2743c4;
+  --paper-marker: #ffe27a;
+  --paper-marker-ink: #3d3200;
+  --paper-warn-bg: #fbefd9;
+  --paper-warn-ink: #8a4f00;
+
+  --font-ui: 'Instrument Sans Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-data: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  --font-doc: 'Newsreader Variable', 'Iowan Old Style', Georgia, serif;
+
+  /* shadcn/ui semantic tokens, mapped onto the palette above */
+  --background: var(--panel);
+  --foreground: var(--ink);
+  --card: var(--panel);
+  --card-foreground: var(--ink);
+  --popover: var(--panel);
+  --popover-foreground: var(--ink);
+  --primary: var(--cobalt);
+  --primary-foreground: var(--on-cobalt);
+  --secondary: var(--panel-2);
+  --secondary-foreground: var(--ink);
+  --muted: var(--panel-2);
+  --muted-foreground: var(--ink-2);
+  --accent: var(--panel-2);
+  --accent-foreground: var(--ink);
+  --destructive: var(--bad);
+  --border: var(--rule);
+  --input: var(--rule);
+  --ring: var(--cobalt);
+  --radius: 0.5rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --ground: #0b0d11;
+    --panel: #13161c;
+    --panel-2: #1a1e26;
+    --ink: #e6e9ef;
+    --ink-2: #a0a8b7;
+    --ink-3: #6e7686;
+    --rule: #262b35;
+    --cobalt: #93a5ff;
+    --cobalt-soft: #1c2240;
+    --on-cobalt: #0b0f1c;
+    --marker: #5e4f12;
+    --marker-ink: #fff4c2;
+    --ok: #4fc58d;
+    --ok-soft: #12291f;
+    --warn: #f0a445;
+    --warn-soft: #2d2210;
+    --bad: #f2786d;
+    --bad-soft: #2e1614;
+    --paper-rule: #d9dbe0;
+    --shadow-page: 0 1px 2px rgb(0 0 0 / 0.4), 0 12px 32px rgb(0 0 0 / 0.45);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme='dark'] {
+  --ground: #0b0d11;
+  --panel: #13161c;
+  --panel-2: #1a1e26;
+  --ink: #e6e9ef;
+  --ink-2: #a0a8b7;
+  --ink-3: #6e7686;
+  --rule: #262b35;
+  --cobalt: #93a5ff;
+  --cobalt-soft: #1c2240;
+  --on-cobalt: #0b0f1c;
+  --marker: #5e4f12;
+  --marker-ink: #fff4c2;
+  --ok: #4fc58d;
+  --ok-soft: #12291f;
+  --warn: #f0a445;
+  --warn-soft: #2d2210;
+  --bad: #f2786d;
+  --bad-soft: #2e1614;
+  --paper-rule: #d9dbe0;
+  --shadow-page: 0 1px 2px rgb(0 0 0 / 0.4), 0 12px 32px rgb(0 0 0 / 0.45);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-ground: var(--ground);
+  --color-panel: var(--panel);
+  --color-panel-2: var(--panel-2);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-rule: var(--rule);
+  --color-cobalt: var(--cobalt);
+  --color-cobalt-soft: var(--cobalt-soft);
+  --color-on-cobalt: var(--on-cobalt);
+  --color-cobalt-ink: var(--cobalt-ink);
+  --color-marker: var(--marker);
+  --color-marker-ink: var(--marker-ink);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-bad: var(--bad);
+  --color-bad-soft: var(--bad-soft);
+  --color-paper: var(--paper);
+  --color-paper-ink: var(--paper-ink);
+  --color-paper-rule: var(--paper-rule);
+  --color-paper-marker: var(--paper-marker);
+  --color-paper-marker-ink: var(--paper-marker-ink);
+
+  --font-sans: var(--font-ui);
+  --font-mono: var(--font-data);
+  --font-serif: var(--font-doc);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--font-ui);
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings: 'ss01', 'cv11';
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+  :focus-visible {
+    outline: 2px solid var(--cobalt);
+    outline-offset: 2px;
+  }
+}
+
+@layer utilities {
+  .drag {
+    -webkit-app-region: drag;
+    app-region: drag;
+  }
+  .no-drag {
+    -webkit-app-region: no-drag;
+    app-region: no-drag;
+  }
+  .num {
+    font-variant-numeric: tabular-nums;
+  }
+  .eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+}
+
+/* docx-preview output: keep its page geometry, swap its grey desk for ours. */
+.ftt-docx .docx-wrapper {
+  background: transparent;
+  padding: 28px 16px 56px;
+}
+.ftt-docx .docx-wrapper > section.docx {
+  box-shadow: var(--shadow-page);
+  margin-bottom: 28px;
+}
+.ftt-docx .ftt-val {
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background-color 0.15s;
+}
+.ftt-docx[data-highlight='true'] .ftt-val {
+  background: color-mix(in srgb, var(--paper-mark) 8%, transparent);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--paper-mark) 45%, transparent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+.ftt-docx .ftt-val:hover {
+  background: color-mix(in srgb, var(--paper-mark) 16%, transparent);
+}
+.ftt-docx .ftt-selected {
+  outline: 2px solid var(--paper-mark);
+  outline-offset: 2px;
+  background: color-mix(in srgb, var(--paper-mark) 14%, transparent);
+  border-radius: 2px;
+}
+.ftt-docx .ftt-missing {
+  cursor: pointer;
+  border-radius: 3px;
+  padding: 0 3px;
+  background: var(--paper-warn-bg);
+  color: var(--paper-warn-ink);
+  font-family: var(--font-ui);
+  font-size: 0.85em;
+  font-weight: 600;
+}
+
+/* A field that just changed gets a short wash so the eye can follow the agent. */
+@keyframes field-wash {
+  from {
+    background-color: var(--cobalt-soft);
+  }
+  to {
+    background-color: transparent;
+  }
+}
+.field-wash {
+  animation: field-wash 1.4s ease-out;
+}
+
+@keyframes caret {
+  50% {
+    opacity: 0;
+  }
+}
+.caret::after {
+  content: '';
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin-left: 2px;
+  vertical-align: -0.15em;
+  background: var(--cobalt);
+  animation: caret 1s steps(1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
