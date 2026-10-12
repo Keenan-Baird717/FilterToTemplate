@@ -65,6 +65,7 @@ export function CommandMenu() {
             <CommandItem key={v.id} value={`prototype ${v.name} ${v.thesis}`} onSelect={() => run(() => useApp.getState().setVariant(v.id))}>
               <span className="w-4 text-center font-mono text-[11px] text-ink-3">{i}</span>
               <span>{v.name}</span>
+              {v.tag && <span className="font-mono text-[10px] text-cobalt-ink uppercase">{v.tag}</span>}
               <span className="ml-auto truncate pl-3 text-[11px] text-ink-3">{v.thesis}</span>
             </CommandItem>
           ))}

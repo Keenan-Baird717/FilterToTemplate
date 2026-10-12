@@ -65,6 +65,11 @@ export function PrototypeBar() {
                 >
                   <span className="num font-mono text-[10px] text-ink-3">{i}</span>
                   {v.name}
+                  {v.tag && (
+                    <span className="rounded-[4px] bg-cobalt-soft px-1 font-mono text-[9px] leading-[15px] font-medium tracking-wide text-cobalt-ink uppercase">
+                      {v.tag}
+                    </span>
+                  )}
                 </button>
               </TooltipTrigger>
               <TooltipContent side="bottom">

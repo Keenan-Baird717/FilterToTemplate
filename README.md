@@ -7,19 +7,26 @@ A desktop app that fills team-designed templates from many uploaded documents. A
 
 ![Fields view: sources on the left, cited fill state in the middle, agent with a follow-up form on the right](docs/screenshots/fields.png)
 
+## Direction
+
+- **Base: Workbench** (`variants/workbench`). Sources, fields and agent side by side. This is the design the round-two prototypes build on.
+- **V2: Tray** (`variants/tray`). Workbench with the follow-up questions moved out of the chat into a tray pinned above the fields, and a sources panel that folds into a rail and wakes up when the agent reads or cites a document.
+
+The other prototypes stay in the app for reference.
+
 ## Prototypes
 
 The app ships several layout prototypes over the same agent, fill state and Word render. Switch between them with the bar at the top, `Alt+1`…`Alt+9`, the command menu (`Ctrl/⌘ K`), or a URL hash such as `#tray`. The reset button puts the example back to its opening state.
 
 | # | Prototype | Idea |
 |---|---|---|
-| 0 | Workbench | The original: sources, fields and agent side by side |
+| 0 | Workbench (Base) | The original: sources, fields and agent side by side |
 | 1 | Canvas | The letter is the interface; edit and verify values on the page |
 | 2 | Steps | A guided flow that asks for one decision at a time |
 | 3 | Chat | Conversation-first; the document opens beside it |
 | 4 | Triage | Keyboard-driven review of each value against its evidence |
 | 5 | Grid | One dense sheet with bulk actions, for large templates |
-| 6 | Tray | Workbench with questions pinned above the fields and a sources rail that wakes when the agent reads |
+| 6 | Tray (V2) | Workbench with questions pinned above the fields and a sources rail that wakes when the agent reads |
 | 7 | In place | Workbench with questions answered inside the field rows and an evidence pane that follows your focus |
 | 8 | Sidekick | Workbench without the left pane; one side panel with Needs you, Agent and Sources tabs |
 | 9 | Dock | Workbench with sources in a dock along the bottom and questions as one focused card |
