@@ -1,11 +1,19 @@
-import { Monitor, Moon, RotateCcw, Sun } from 'lucide-react'
+import { ChevronDown, Monitor, Moon, RotateCcw, Sun } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { resetExample } from '@/lib/agent'
 import { useApp, type Theme } from '@/lib/store'
 import { cn } from '@/lib/utils'
-import { variants } from '@/variants/registry'
+import { earlierVariants, primaryVariants, type VariantDef } from '@/variants/registry'
 
 export function isMacLike() {
   const platform = window.ftt?.platform
@@ -27,6 +35,7 @@ export function PrototypeBar() {
   const setTheme = useApp((s) => s.setTheme)
   const ThemeIcon = themeIcon[theme]
   const mac = isMacLike()
+  const earlierCurrent = earlierVariants.find((v) => v.id === current)
 
   return (
     <header
@@ -44,41 +53,47 @@ export function PrototypeBar() {
 
       <nav className="no-drag flex min-w-0 flex-1 justify-start overflow-x-auto [scrollbar-width:none] sm:justify-center" aria-label="Prototypes">
         <div className="flex items-center gap-0.5 rounded-lg bg-panel-2 p-0.5">
-          {variants.map((v, i) => (
+          {primaryVariants.map((v, i) => (
             <span key={v.id} className="contents">
-            {i > 0 && variants[i - 1].round !== v.round && (
-              <span className="mx-1 flex shrink-0 items-center gap-1.5 pl-1 text-[10px] font-medium tracking-wide text-ink-3 uppercase" aria-hidden>
-                <span className="h-4 w-px bg-rule" />
-                {v.round === 3 ? 'From V2' : `Round ${v.round}`}
-              </span>
-            )}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  type="button"
-                  onClick={() => setVariant(v.id)}
-                  aria-current={current === v.id ? 'page' : undefined}
-                  className={cn(
-                    'flex h-7 shrink-0 items-center gap-1.5 rounded-md px-2.5 text-[12px] whitespace-nowrap transition-colors',
-                    current === v.id ? 'bg-panel font-medium text-ink shadow-[0_0_0_1px_var(--rule)]' : 'text-ink-2 hover:text-ink'
-                  )}
-                >
-                  <span className="num font-mono text-[10px] text-ink-3">{i}</span>
-                  {v.name}
-                  {v.tag && (
-                    <span className="rounded-[4px] bg-cobalt-soft px-1 font-mono text-[9px] leading-[15px] font-medium tracking-wide text-cobalt-ink uppercase">
-                      {v.tag}
-                    </span>
-                  )}
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                {v.thesis}
-                {i < 9 ? ` · Alt+${i + 1}` : ''}
-              </TooltipContent>
-            </Tooltip>
+              {i > 0 && primaryVariants[i - 1].round !== 3 && v.round === 3 && (
+                <span className="mx-1 flex shrink-0 items-center gap-1.5 pl-1 text-[10px] font-medium tracking-wide text-ink-3 uppercase" aria-hidden>
+                  <span className="h-4 w-px bg-rule" />
+                  From V2
+                </span>
+              )}
+              <VariantTab v={v} shortcut={i + 1} active={current === v.id} onSelect={() => setVariant(v.id)} />
             </span>
           ))}
+          <span className="mx-1 h-4 w-px shrink-0 bg-rule" aria-hidden />
+          {earlierCurrent && <VariantTab v={earlierCurrent} active onSelect={() => setVariant(earlierCurrent.id)} />}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                className="flex h-7 shrink-0 items-center gap-1 rounded-md px-2.5 text-[12px] whitespace-nowrap text-ink-2 transition-colors hover:text-ink data-[state=open]:bg-panel data-[state=open]:text-ink"
+              >
+                Earlier <span className="num font-mono text-[10px] text-ink-3">{earlierVariants.length}</span>
+                <ChevronDown className="size-3.5" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-[340px]">
+              {([1, 2] as const).map((round) => (
+                <DropdownMenuGroup key={round}>
+                  <DropdownMenuLabel className="text-[10px] font-medium tracking-wide text-ink-3 uppercase">
+                    {round === 1 ? 'Round 1 · first explorations' : 'Round 2 · Workbench refinements'}
+                  </DropdownMenuLabel>
+                  {earlierVariants
+                    .filter((v) => v.round === round)
+                    .map((v) => (
+                      <DropdownMenuItem key={v.id} onSelect={() => setVariant(v.id)} className="flex-col items-start gap-0.5 py-1.5">
+                        <span className={cn('text-[13px]', current === v.id && 'font-semibold')}>{v.name}</span>
+                        <span className="text-[11px] leading-snug text-ink-3">{v.thesis}</span>
+                      </DropdownMenuItem>
+                    ))}
+                </DropdownMenuGroup>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </nav>
 
@@ -110,6 +125,35 @@ export function PrototypeBar() {
         </Tooltip>
       </div>
     </header>
+  )
+}
+
+function VariantTab({ v, shortcut, active, onSelect }: { v: VariantDef; shortcut?: number; active: boolean; onSelect: () => void }) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          type="button"
+          onClick={onSelect}
+          aria-current={active ? 'page' : undefined}
+          className={cn(
+            'flex h-7 shrink-0 items-center gap-1.5 rounded-md px-2.5 text-[12px] whitespace-nowrap transition-colors',
+            active ? 'bg-panel font-medium text-ink shadow-[0_0_0_1px_var(--rule)]' : 'text-ink-2 hover:text-ink'
+          )}
+        >
+          {v.name}
+          {v.tag && (
+            <span className="rounded-[4px] bg-cobalt-soft px-1 font-mono text-[9px] leading-[15px] font-medium tracking-wide text-cobalt-ink uppercase">
+              {v.tag}
+            </span>
+          )}
+        </button>
+      </TooltipTrigger>
+      <TooltipContent side="bottom">
+        {v.thesis}
+        {shortcut && shortcut <= 9 ? ` · Alt+${shortcut}` : ''}
+      </TooltipContent>
+    </Tooltip>
   )
 }
 

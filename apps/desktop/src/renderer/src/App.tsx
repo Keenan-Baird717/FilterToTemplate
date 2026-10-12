@@ -5,7 +5,7 @@ import { SourceSheet } from '@/components/SourceSheet'
 import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { useApp } from '@/lib/store'
-import { variantFromHash, variants } from '@/variants/registry'
+import { primaryVariants, variantFromHash, variants } from '@/variants/registry'
 
 export default function App() {
   const variantId = useApp((s) => s.variant)
@@ -22,9 +22,9 @@ export default function App() {
     const onHash = () => setVariant(variantFromHash(location.hash).id)
     const onKey = (e: KeyboardEvent) => {
       const n = Number(e.key)
-      if (e.altKey && !e.metaKey && !e.ctrlKey && n >= 1 && n <= variants.length) {
+      if (e.altKey && !e.metaKey && !e.ctrlKey && n >= 1 && n <= Math.min(9, primaryVariants.length)) {
         e.preventDefault()
-        setVariant(variants[n - 1].id)
+        setVariant(primaryVariants[n - 1].id)
       }
     }
     window.addEventListener('hashchange', onHash)

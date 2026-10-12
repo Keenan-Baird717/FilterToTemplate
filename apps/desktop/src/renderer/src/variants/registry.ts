@@ -40,6 +40,15 @@ export const variants: VariantDef[] = [
 
 export const defaultVariant = variants[0]
 
+/** Always visible in the switcher: the chosen Base and V2, then the spin-offs from V2. Alt+1… follows this order. */
+export const primaryVariants = [
+  ...variants.filter((v) => v.tag === 'Base'),
+  ...variants.filter((v) => v.tag === 'V2'),
+  ...variants.filter((v) => v.round === 3)
+]
+/** Earlier explorations, kept for reference in the switcher's menu. */
+export const earlierVariants = variants.filter((v) => !primaryVariants.includes(v))
+
 export function variantFromHash(hash: string): VariantDef {
   const id = hash.replace(/^#/, '')
   return variants.find((v) => v.id === id) ?? defaultVariant
