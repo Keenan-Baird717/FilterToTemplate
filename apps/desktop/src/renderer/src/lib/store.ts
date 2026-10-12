@@ -25,6 +25,8 @@ interface AppState {
   theme: Theme
   highlight: boolean
   flash: Record<string, number>
+  /** Why each field last flashed: a value change, an approval, or a reveal. */
+  flashKind: Record<string, 'value' | 'approve' | 'reveal'>
   commandOpen: boolean
   variant: string
 
@@ -96,6 +98,7 @@ export const useApp = create<AppState>((set, get) => ({
   theme: readTheme(),
   highlight: true,
   flash: {},
+  flashKind: {},
   commandOpen: false,
   variant: variantFromHash(typeof location === 'undefined' ? '' : location.hash).id,
 
@@ -108,11 +111,12 @@ export const useApp = create<AppState>((set, get) => ({
       case 'set':
         set((s) => ({
           fields: { ...s.fields, [op.fieldId]: op.field },
-          flash: op.field.status === 'drafting' ? s.flash : { ...s.flash, [op.fieldId]: Date.now() }
+          flash: op.field.status === 'drafting' ? s.flash : { ...s.flash, [op.fieldId]: Date.now() },
+          flashKind: op.field.status === 'drafting' ? s.flashKind : { ...s.flashKind, [op.fieldId]: 'value' }
         }))
         return
       case 'rates':
-        set((s) => ({ rates: op.rates, flash: { ...s.flash, hourlyRates: Date.now() } }))
+        set((s) => ({ rates: op.rates, flash: { ...s.flash, hourlyRates: Date.now() }, flashKind: { ...s.flashKind, hourlyRates: 'value' } }))
         return
       case 'activity':
         set({ activity: op.label })
@@ -135,7 +139,8 @@ export const useApp = create<AppState>((set, get) => ({
           note: trimmed ? 'Edited by you · the agent won’t overwrite it' : undefined
         }
       },
-      flash: { ...s.flash, [fieldId]: Date.now() }
+      flash: { ...s.flash, [fieldId]: Date.now() },
+      flashKind: { ...s.flashKind, [fieldId]: 'value' }
     }))
   },
 
@@ -145,27 +150,35 @@ export const useApp = create<AppState>((set, get) => ({
     set((s) => {
       const fields = { ...s.fields }
       const flash = { ...s.flash }
+      const flashKind = { ...s.flashKind }
       for (const id of section.fields) {
         const f = fields[id]
         if (f && (f.status === 'verified' || f.status === 'user_answered')) {
           fields[id] = { ...f, status: 'approved' }
           flash[id] = Date.now()
+          flashKind[id] = 'approve'
         }
       }
       const rates: RatesState =
         section.hasRates && s.rates.status === 'verified' ? { ...s.rates, status: 'approved' } : s.rates
-      return { fields, flash, rates }
+      return { fields, flash, flashKind, rates }
     })
   },
 
   approveField: (fieldId) =>
     set((s) => {
       if (fieldId === 'hourlyRates') {
-        return s.rates.status === 'verified' ? { rates: { ...s.rates, status: 'approved' }, flash: { ...s.flash, hourlyRates: Date.now() } } : {}
+        return s.rates.status === 'verified'
+          ? { rates: { ...s.rates, status: 'approved' }, flash: { ...s.flash, hourlyRates: Date.now() }, flashKind: { ...s.flashKind, hourlyRates: 'approve' } }
+          : {}
       }
       const f = s.fields[fieldId]
       if (!f || (f.status !== 'verified' && f.status !== 'user_answered')) return {}
-      return { fields: { ...s.fields, [fieldId]: { ...f, status: 'approved' } }, flash: { ...s.flash, [fieldId]: Date.now() } }
+      return {
+        fields: { ...s.fields, [fieldId]: { ...f, status: 'approved' } },
+        flash: { ...s.flash, [fieldId]: Date.now() },
+        flashKind: { ...s.flashKind, [fieldId]: 'approve' }
+      }
     }),
 
   unapproveField: (fieldId) =>
@@ -184,7 +197,7 @@ export const useApp = create<AppState>((set, get) => ({
 
   reveal: null,
   revealField: (fieldId) => {
-    set((s) => ({ reveal: { fieldId, at: Date.now() }, flash: { ...s.flash, [fieldId]: Date.now() } }))
+    set((s) => ({ reveal: { fieldId, at: Date.now() }, flash: { ...s.flash, [fieldId]: Date.now() }, flashKind: { ...s.flashKind, [fieldId]: 'reveal' } }))
     // Generic fallback for layouts that render rows with id="field-<id>".
     requestAnimationFrame(() => document.getElementById(`field-${fieldId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }))
   },
@@ -217,6 +230,7 @@ export const useApp = create<AppState>((set, get) => ({
       source: null,
       view: 'fields',
       flash: {},
+      flashKind: {},
       reveal: null
     }),
 

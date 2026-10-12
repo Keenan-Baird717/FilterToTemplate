@@ -77,6 +77,7 @@ export function CitationChip({ source, className }: { source: SourceRef; classNa
     <button
       type="button"
       data-doc-id={source.docId}
+      data-locator={locatorText(source)}
       onClick={() => openSource({ docId: source.docId, page: source.page, quote: source.quote, locator: source.locator })}
       title={`“${source.quote}”`}
       className={cn(

@@ -6,32 +6,55 @@ import { cn } from '@/lib/utils'
 // One source page (or sheet range, or email) with the cited quote marked.
 // Used by the source drawer and by any prototype that shows evidence inline.
 
-/** Highlight the cited quote inside a block, tolerant of curly quotes and case. */
-export function markQuote(text: string, quote: string | undefined): ReactNode {
-  if (!quote) return text
-  const norm = (s: string) => s.replace(/[’‘]/g, "'").replace(/[“”]/g, '"').toLowerCase()
-  const idx = norm(text).indexOf(norm(quote))
-  if (idx < 0) return text
-  return (
-    <>
-      {text.slice(0, idx)}
-      <mark className="rounded-[2px] bg-marker px-0.5 text-marker-ink">{text.slice(idx, idx + quote.length)}</mark>
-      {text.slice(idx + quote.length)}
-    </>
-  )
+const norm = (t: string) => t.replace(/[’‘]/g, "'").replace(/[“”]/g, '"').toLowerCase()
+
+/** Highlight cited quotes inside a block, tolerant of curly quotes and case. */
+export function markQuote(text: string, quote: string | string[] | undefined): ReactNode {
+  const quotes = (Array.isArray(quote) ? quote : quote ? [quote] : []).filter(Boolean)
+  if (!quotes.length) return text
+  const lower = norm(text)
+  const ranges: [number, number][] = []
+  for (const q of quotes) {
+    const i = lower.indexOf(norm(q))
+    if (i >= 0) ranges.push([i, i + q.length])
+  }
+  if (!ranges.length) return text
+  ranges.sort((a, b) => a[0] - b[0])
+  const merged: [number, number][] = []
+  for (const r of ranges) {
+    const last = merged.at(-1)
+    if (last && r[0] <= last[1]) last[1] = Math.max(last[1], r[1])
+    else merged.push([...r])
+  }
+  const out: ReactNode[] = []
+  let at = 0
+  merged.forEach(([a, b], k) => {
+    if (a > at) out.push(text.slice(at, a))
+    out.push(
+      <mark key={k} className="rounded-[2px] bg-paper-marker px-0.5 text-paper-marker-ink">
+        {text.slice(a, b)}
+      </mark>
+    )
+    at = b
+  })
+  if (at < text.length) out.push(text.slice(at))
+  return <>{out}</>
 }
 
 export interface EvidencePageProps {
   docId: string
   page?: number
   quote?: string
+  /** Mark several quotes on the same page (in addition to quote). */
+  quotes?: string[]
   locator?: string
   /** Tighter type and padding for inline use. */
   compact?: boolean
   className?: string
 }
 
-export function EvidencePage({ docId, page, quote, locator, compact, className }: EvidencePageProps) {
+export function EvidencePage({ docId, page, quote, quotes, locator, compact, className }: EvidencePageProps) {
+  const allQuotes = [...(quote ? [quote] : []), ...(quotes ?? [])]
   const doc = useApp((s) => s.docs.find((d) => d.id === docId))
   if (!doc) return null
   const content = doc.content.find((p) => p.n === page) ?? doc.content[0]
@@ -103,7 +126,7 @@ export function EvidencePage({ docId, page, quote, locator, compact, className }
       <div className={cn('flex flex-col', compact ? 'gap-2' : 'gap-3')}>
         {content.blocks.map((b, i) => (
           <p key={i} className={cn(i === 0 && 'font-semibold')}>
-            {markQuote(b, quote)}
+            {markQuote(b, allQuotes)}
           </p>
         ))}
       </div>

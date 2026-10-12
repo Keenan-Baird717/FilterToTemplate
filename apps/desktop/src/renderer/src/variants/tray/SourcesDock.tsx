@@ -337,8 +337,8 @@ function RailDock({ s, drop, quiet }: { s: Signals; drop: Drop; quiet: boolean }
   const readingKey = [...s.live.reading].sort().join(',')
   const peekedThisTurn = useRef(false)
   const peekStart = useRef(0)
+  // A new turn (or the end of one) starts fresh: a peek dismissed last turn doesn't silence this one.
   useEffect(() => {
-    if (s.live.busy) return
     suppressPeek.current = false
     peekedThisTurn.current = false
   }, [s.live.busy])

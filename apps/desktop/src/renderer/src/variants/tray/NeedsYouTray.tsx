@@ -325,7 +325,7 @@ function QuestionTray({ question, pending, busy }: { question: QuestionSet; pend
             className="overflow-clip"
           >
             <form
-              className="flex max-h-[min(58vh,560px)] flex-col border-t border-warn/15 bg-panel"
+              className="flex max-h-[min(44dvh,560px)] flex-col border-t border-warn/15 bg-panel sm:max-h-[min(58vh,560px)]"
               onSubmit={(e) => {
                 e.preventDefault()
                 submit()

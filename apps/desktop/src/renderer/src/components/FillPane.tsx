@@ -349,12 +349,18 @@ function dedupeDocs(sources: FieldState['sources']) {
 }
 
 export function RatesRow() {
+  const options = useContext(FieldRowContext)
   const rates = useApp((s) => s.rates)
   const wash = useWash('hourlyRates')
   return (
     <div
       id="field-hourlyRates"
-      className={cn('grid grid-cols-1 gap-x-5 gap-y-2 px-4 py-3.5 @lg:grid-cols-[168px_minmax(0,1fr)_auto] @lg:items-start', wash && 'field-wash')}
+      data-selected={options.selectedId === 'hourlyRates' || undefined}
+      onClick={options.onSelect ? (e) => options.onSelect?.('hourlyRates', e) : undefined}
+      className={cn(
+        'grid grid-cols-1 gap-x-5 gap-y-2 px-4 py-3.5 @lg:grid-cols-[168px_minmax(0,1fr)_auto] @lg:items-start data-[selected]:bg-cobalt-soft/40',
+        wash && 'field-wash'
+      )}
     >
       <div className="min-w-0">
         <div className="text-[13px] font-medium text-ink">Hourly rates</div>
@@ -395,6 +401,7 @@ export function RatesRow() {
         ) : (
           <span className="text-[14px] text-ink-3 italic">Waiting</span>
         )}
+        {options.renderExtra?.('hourlyRates', undefined)}
       </div>
       <div className="flex @lg:justify-end">
         <StatusChip status={rates.status} />

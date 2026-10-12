@@ -67,6 +67,7 @@ export function useLiveSources(windowMs = 4000) {
   const fields = useApp((s) => s.fields)
   const rates = useApp((s) => s.rates)
   const flash = useApp((s) => s.flash)
+  const flashKind = useApp((s) => s.flashKind)
   const [now, setNow] = useState(() => Date.now())
   const recentStamp = Math.max(0, ...Object.values(flash))
   useEffect(() => {
@@ -92,12 +93,13 @@ export function useLiveSources(windowMs = 4000) {
     }
     const recent = new Map<string, number>()
     for (const [fieldId, at] of Object.entries(flash)) {
-      if (now - at > windowMs) continue
+      // Approvals and reveals aren't new citations.
+      if (now - at > windowMs || (flashKind[fieldId] && flashKind[fieldId] !== 'value')) continue
       const refs = fieldId === 'hourlyRates' ? rates.rows.flatMap((r) => (r.source ? [r.source] : [])) : (fields[fieldId]?.sources ?? [])
       for (const ref of refs) recent.set(ref.docId, Math.max(recent.get(ref.docId) ?? 0, at))
     }
     return { reading, recent, busy }
-  }, [messages, status, flash, fields, rates, now, windowMs])
+  }, [messages, status, flash, flashKind, fields, rates, now, windowMs])
 }
 
 /** Advances simulated parsing for files added in the prototype. Mount once per layout. */

@@ -16,7 +16,7 @@ The other prototypes stay in the app for reference.
 
 ## Prototypes
 
-The app ships several layout prototypes over the same agent, fill state and Word render. Switch between them with the bar at the top, `Alt+1`…`Alt+9`, the command menu (`Ctrl/⌘ K`), or a URL hash such as `#tray`. The reset button puts the example back to its opening state.
+The app ships several layout prototypes over the same agent, fill state and Word render. Switch between them with the bar at the top, `Alt+1`…`Alt+7` (Base, V2 and the round-three prototypes), the command menu (`Ctrl/⌘ K`), or a URL hash such as `#tray`. The reset button puts the example back to its opening state.
 
 | # | Prototype | Idea |
 |---|---|---|
@@ -31,8 +31,13 @@ The app ships several layout prototypes over the same agent, fill state and Word
 | 8 | Sidekick | Workbench without the left pane; one side panel with Needs you, Agent and Sources tabs |
 | 9 | Dock | Workbench with sources in a dock along the bottom and questions as one focused card |
 | 10 | Phases | Workbench whose left column follows the job: reading, then questions, then review |
+| 11 | Evidence | V2 whose left rail opens into evidence for the field you select |
+| 12 | Split | V2 with the live Word letter beside the fields and the agent as a drawer |
+| 13 | Review | V2 whose tray carries you through questions, then review, then export |
+| 14 | Focus | V2 with finished sections folded away and a floating agent composer |
+| 15 | Trail | V2 with an activity trail in the rail and a history on every value |
 
-Round 2 (6–10) refines Workbench: follow-up questions move out of the chat, and sources come alive only when they matter. Each prototype lives in `apps/desktop/src/renderer/src/variants/<id>/`.
+Round 2 (6–10) refines Workbench: follow-up questions move out of the chat, and sources come alive only when they matter. Round 3 (11–15) spins off from Tray (V2): each starts from the whole Tray prototype and pushes one idea further. The switcher shows Base, V2 and the round-three prototypes up front; earlier rounds are in its Earlier menu. Each prototype lives in `apps/desktop/src/renderer/src/variants/<id>/`.
 
 ## Run the prototype
 

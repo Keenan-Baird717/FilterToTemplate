@@ -3,7 +3,7 @@ import { Switch } from '@/components/ui/switch'
 import { useApp } from '@/lib/store'
 import { DocxView } from './DocxView'
 
-export function PreviewPane() {
+export function PreviewPane({ onValueClick }: { onValueClick?: (fieldId: string, element: HTMLElement) => void } = {}) {
   const highlight = useApp((s) => s.highlight)
   const setHighlight = useApp((s) => s.setHighlight)
   const focusField = useApp((s) => s.focusField)
@@ -20,7 +20,7 @@ export function PreviewPane() {
           <Switch id="highlight-fields" checked={highlight} onCheckedChange={setHighlight} />
         </label>
       </div>
-      <DocxView className="flex-1" highlight={highlight} onValueClick={(id) => focusField(id)} />
+      <DocxView className="flex-1" highlight={highlight} onValueClick={onValueClick ?? ((id) => focusField(id))} />
     </div>
   )
 }
